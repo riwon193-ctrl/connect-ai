@@ -65,6 +65,33 @@ function countUp(el, target, opts = {}) {
   requestAnimationFrame(tick);
 }
 
+
+function renderMarketView(view) {
+  const badge = $('marketViewBadge');
+  const sectors = $('marketViewSectors');
+  const rationale = $('marketViewRationale');
+  if (!badge || !sectors || !rationale) return;
+
+  if (!view) {
+    badge.textContent = 'UNKNOWN';
+    sectors.textContent = 'market_view.json 없음';
+    rationale.textContent = 'Market Analyst 실행 후 시장 뷰가 표시됩니다.';
+    return;
+  }
+
+  const favored = Array.isArray(view.favored_sectors) ? view.favored_sectors : [];
+  const disfavored = Array.isArray(view.disfavored_sectors) ? view.disfavored_sectors : [];
+
+  badge.textContent = view.market_view || 'UNKNOWN';
+  sectors.innerHTML =
+    '<span style="color:#34d399;font-weight:800;">선호</span> ' + esc(favored.join(' · ') || '-') +
+    ' <span style="color:#64748b;margin:0 8px;">|</span> ' +
+    '<span style="color:#fb7185;font-weight:800;">주의</span> ' + esc(disfavored.join(' · ') || '-');
+
+  rationale.textContent = view.rationale || '시장 뷰 근거 없음';
+}
+
+
 // ───────── Sparkline (daily revenue) ─────────
 function renderSparkline(byDay, primaryCur) {
   const svg = $('sparkSvg');
@@ -326,6 +353,7 @@ function render(state) {
   $('emptyArea').classList.add('hidden');
 
   const primaryCur = renderKPI(data);
+  renderMarketView(data.market_view || null);
   renderSparkline(data.by_day || {}, primaryCur);
   renderDonut(data.by_project || {}, primaryCur);
   renderProjectBars(data.by_project || {});

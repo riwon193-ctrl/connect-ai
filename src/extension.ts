@@ -1157,6 +1157,28 @@ function _readHermesTradeDetails(): any {
 }
 
 
+
+function _readHermesMarketView(): any {
+    try {
+        const viewPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/market_view.json';
+        if (!fs.existsSync(viewPath)) {
+            return null;
+        }
+        const v = JSON.parse(fs.readFileSync(viewPath, 'utf-8') || '{}');
+        return {
+            market_view: String(v.market_view || 'UNKNOWN'),
+            favored_sectors: Array.isArray(v.favored_sectors) ? v.favored_sectors : [],
+            disfavored_sectors: Array.isArray(v.disfavored_sectors) ? v.disfavored_sectors : [],
+            rationale: String(v.rationale || ''),
+            created_at: String(v.created_at || ''),
+            source: String(v.source || '')
+        };
+    } catch {
+        return null;
+    }
+}
+
+
 function _readHermesPerformanceMiniData(): any {
     try {
         const summaryPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/performance_summary.json';
@@ -1177,6 +1199,7 @@ function _readHermesPerformanceMiniData(): any {
         };
 
         const detail = _readHermesTradeDetails();
+        const marketView = _readHermesMarketView();
 
         return {
             success: true,
@@ -1208,7 +1231,8 @@ function _readHermesPerformanceMiniData(): any {
             },
             by_day: detail.by_day || {},
             by_project: detail.by_project || {},
-            transactions: detail.transactions || []
+            transactions: detail.transactions || [],
+            market_view: marketView
         };
     } catch (e: any) {
         return { error: 'Hermes 성과 데이터 파싱 실패: ' + (e?.message || String(e)) };
@@ -12336,6 +12360,22 @@ class RevenueDashboardPanel {
       <div class="kpi-label">누적 손익 / 거래수</div>
       <div class="kpi-value" id="kpiNet" data-last="0">0.00</div>
       <div class="kpi-unit"><span id="kpiCount" data-last="0">0</span>건</div>
+    </div>
+  </div>
+
+  <!-- Market view row -->
+  <div class="row" style="margin-top: 20px;">
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="section">
+        <h2>시장 뷰</h2>
+        <div id="marketViewBox" style="display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center;">
+          <div id="marketViewBadge" style="font-size:1.65rem;font-weight:1000;color:#67e8f9;text-shadow:0 0 12px rgba(103,232,249,.7);">UNKNOWN</div>
+          <div>
+            <div id="marketViewSectors" style="font-size:.92rem;color:#e2e8f0;margin-bottom:6px;">선호/주의 섹터 확인 중</div>
+            <div id="marketViewRationale" style="font-size:.78rem;color:#94a3b8;line-height:1.5;">market_view.json 대기 중</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
