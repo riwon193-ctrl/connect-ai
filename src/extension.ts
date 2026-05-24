@@ -19532,6 +19532,98 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
         const p = (prompt || '').trim();
         if (!p) return false;
 
+        /* Hermes_AIOS stock office briefing shortcut.
+           관제실 상태/브리핑 요청은 LLM 추측을 태우지 않고 stock_office daily snapshot을 직접 읽어 답한다. */
+        const stockBriefingWanted =
+            /관제실|stock_office|장마감|수익률\s*관제|수급\s*v3/i.test(p) &&
+            /브리핑|상태|현황|요약|보고|어때/i.test(p);
+
+        if (stockBriefingWanted) {
+            const post = (m: any) => this._broadcastCorporate(m);
+            try {
+                const root = '/Users/gangminjun/Desktop/Hermes_AIOS';
+                const notesDir = path.join(root, '_company', 'sessions', 'stock_office', 'daily_notes');
+                const today = new Date();
+                const ymd = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+                let jsonPath = path.join(notesDir, `${ymd}.json`);
+                if (!fs.existsSync(jsonPath)) {
+                    const files = fs.existsSync(notesDir)
+                        ? fs.readdirSync(notesDir).filter(f => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort()
+                        : [];
+                    if (files.length > 0) {
+                        jsonPath = path.join(notesDir, files[files.length - 1]);
+                    }
+                }
+
+                if (!fs.existsSync(jsonPath)) {
+                    const body = [
+                        '⚠️ 사장님, stock_office daily snapshot을 찾지 못했습니다.',
+                        '',
+                        '확인 필요:',
+                        '- /Users/gangminjun/Desktop/Hermes_AIOS/_company/tools/run_stock_office_daily.sh',
+                        '',
+                        '파일이 없으므로 시장상태/수급/방패 상태는 추측하지 않겠습니다.'
+                    ].join('\n');
+                    this._displayMessages.push({ text: body, role: 'ai' });
+                    post({ type: 'response', value: body });
+                    appendConversationLog({ speaker: '총괄실장', emoji: '👔', section: '관제실 브리핑 shortcut', body });
+                    return true;
+                }
+
+                const snap = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+                const fresh = snap.data_freshness || {};
+                const market = snap.market_state || {};
+                const flow = snap.flow_summary || {};
+                const perf = snap.performance || {};
+                const tq = snap.trade_quality_recent || {};
+                const risk = snap.risk_inspection || {};
+                const paper = risk.paper_state_summary || snap.paper_state || {};
+                const todayPerf = perf.today || {};
+                const mtd = perf.month_to_date || {};
+                const flowV3 = snap.flow_v3 || {};
+
+                const isFresh = !!fresh.is_fresh;
+                const lines = [];
+                lines.push(`📡 Hermes_AIOS 관제실 브리핑 — ${snap.date || path.basename(jsonPath, '.json')}`);
+                lines.push('');
+                lines.push(`데이터 신선도: ${isFresh ? '정상' : '미갱신/휴장 가능'}`);
+                lines.push(`원본 날짜: ${JSON.stringify(fresh.source_dates || {})}`);
+                if (!isFresh) {
+                    lines.push('주의: 오늘 장 데이터로 단정하지 않고, 최신 원본 날짜 기준 참고본으로만 봅니다.');
+                }
+                lines.push('');
+                lines.push(`시장 상태: ${market.risk_mode || '확인 불가'}`);
+                lines.push(`선호 섹터: ${(market.preferred_sectors || []).join(', ') || '없음'}`);
+                lines.push(`주의 섹터: ${(market.caution_sectors || []).join(', ') || '없음'}`);
+                lines.push('');
+                lines.push(`수급 유입: ${JSON.stringify((flow.top_inflow_themes || []).slice(0, 3))}`);
+                lines.push(`수급 이탈: ${JSON.stringify((flow.top_outflow_themes || []).slice(0, 3))}`);
+                lines.push(`수급 v3 누적일수: ${flowV3.day_count ?? 'N/A'}`);
+                lines.push('');
+                lines.push(`오늘 손익/수익률: ${todayPerf.pnl ?? 'N/A'} / ${todayPerf.return_pct ?? 'N/A'}%`);
+                lines.push(`월간 손익/수익률: ${mtd.pnl ?? 'N/A'} / ${mtd.return_pct ?? 'N/A'}%`);
+                lines.push(`최근 매매 품질: ${JSON.stringify(tq.decisions || {})}`);
+                lines.push('');
+                lines.push(`방패 상태: ${risk.status || '확인 불가'}`);
+                lines.push(`잔고/일일손익/셧다운: ${paper.balance ?? 'N/A'} / ${paper.daily_pnl ?? 'N/A'} / ${paper.shutdown ?? 'N/A'}`);
+                lines.push('');
+                lines.push(`근거 파일: ${jsonPath}`);
+
+                const body = lines.join('\n');
+                this._displayMessages.push({ text: body, role: 'ai' });
+                post({ type: 'response', value: body });
+                appendConversationLog({ speaker: '총괄실장', emoji: '👔', section: '관제실 브리핑 shortcut', body: body.slice(0, 2000) });
+                try { fs.writeFileSync(path.join(sessionDir, '_stock_office_shortcut.md'), `# Stock Office Briefing Shortcut\n\n명령: ${prompt}\n\n${body}\n`); } catch { /* ignore */ }
+                return true;
+            } catch (e: any) {
+                const body = `⚠️ 관제실 스냅샷 읽기 실패: ${e?.message || e}\n파일을 못 읽었으므로 시장상태/수급/방패 상태는 추측하지 않겠습니다.`;
+                this._displayMessages.push({ text: body, role: 'ai' });
+                post({ type: 'response', value: body });
+                return true;
+            }
+        }
+
         /* v2.89.156 — 다중 도메인 종합 명령은 multi-agent 로 보냄.
            "유튜브 + 매출 + 종합 보고서" 같이 두 영역 동시 요청이면 단일 도구 shortcut 이
            무시하고 multi-agent dispatch (성과관리관 + 시황영상관 둘 다) 가 잡도록 여기서 바로 false. */
