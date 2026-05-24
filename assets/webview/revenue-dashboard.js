@@ -255,7 +255,7 @@ function renderMarketView(view) {
   if (!view) {
     badge.textContent = 'UNKNOWN';
     sectors.textContent = 'market_view.json 없음';
-    rationale.textContent = 'Market Analyst 실행 후 시장 뷰가 표시됩니다.';
+    rationale.textContent = 'Market Analyst 실행 후 시장 온도가 표시됩니다.';
     return;
   }
 
@@ -268,7 +268,7 @@ function renderMarketView(view) {
     ' <span style="color:#64748b;margin:0 8px;">|</span> ' +
     '<span style="color:#fb7185;font-weight:800;">주의</span> ' + esc(disfavored.join(' · ') || '-');
 
-  rationale.textContent = view.rationale || '시장 뷰 근거 없음';
+  rationale.textContent = view.rationale || '시장 온도 근거 없음';
 }
 
 
@@ -428,7 +428,7 @@ function renderTransactions(txs) {
     feed.innerHTML = `<div class="empty">
       <div class="emoji">📭</div>
       <h3>아직 매매 기록이 없어요</h3>
-      <p>Hermes 매매 로그가 쌓이면 최근 매매가 표시됩니다.</p>
+      <p>Hermes 매매 로그가 쌓이면 최근 체결가 표시됩니다.</p>
     </div>`;
     return;
   }
@@ -518,10 +518,10 @@ function render(state) {
     $('emptyArea').classList.remove('hidden');
     $('emptyArea').innerHTML = `<div class="empty">
       <div class="emoji">⚠️</div>
-      <h3>수익률 데이터 가져오기 실패</h3>
+      <h3>관제 데이터 가져오기 실패</h3>
       <p>${esc(state.error)}</p>
       <p style="margin-top:10px;">
-        Hermes 성과 데이터 파일 연결을 확인하세요.<br>
+        Hermes 관제 데이터 연결을 확인하세요.<br>
         performance_summary.json 생성 여부를 확인하세요.
       </p>
     </div>`;

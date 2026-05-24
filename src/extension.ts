@@ -732,7 +732,7 @@ const EXCLUDED_DIRS = new Set([
 ]);
 const MAX_CONTEXT_SIZE = 12_000; // chars
 
-/* v2.89.61 — 9개 LLM 프롬프트(SYSTEM, CEO_*, SECRETARY_*) 를 assets/prompts/ 에 .md
+/* v2.89.61 — 9개 LLM 프롬프트(SYSTEM, 총괄실장_*, SECRETARY_*) 를 assets/prompts/ 에 .md
    파일로 분리. 익스텐션 로드 시 한 번 읽어 메모리에 캐시. 프롬프트 수정이 코드
    수정 없이 가능 + 줄 수 287줄 절약 + IDE에서 markdown 미리보기로 검토 가능.
    __dirname는 esbuild 번들 출력 위치(extension/out)이라 ../assets/prompts 로 한 단계 위. */
@@ -772,12 +772,12 @@ const SYSTEM_PROMPT = _loadPrompt('system.md');
 // ============================================================
 // 1인 기업 모드 — Multi-Agent Corporate System
 // ------------------------------------------------------------
-// CEO + 5 specialist agents share a "Company" subtree under
+// 총괄실장 + 5 specialist agents share a "Company" subtree under
 // the existing brain folder:
 //   ~/.connect-ai-brain/Company/
 //     _shared/        ← 공동 목표, 회사 정체성 (모두 매번 읽음)
 //     _agents/<id>/   ← 각 에이전트 개인 메모리 (자기만 읽고 씀)
-//     sessions/<ts>/  ← 세션별 산출물 + CEO 종합 보고
+//     sessions/<ts>/  ← 세션별 산출물 + 총괄실장 종합 보고
 // ============================================================
 /* v2.89.64 — AgentDef interface, AGENTS map, AGENT_ORDER, SPECIALIST_IDS
    moved to src/agents.ts. extension.ts only imports them now. ~118 lines saved. */
@@ -836,7 +836,7 @@ const WORLD_LAYOUT = {
   // Each agent's primary desk — building-local % coords.
   // Top cubicle row chairs at office y≈30%; agents stand in aisle at y=38%.
   // Middle row chairs at y≈47%; agents stand at y=58%.
-  // CEO's private office has a baked-in character at the desk — our CEO
+  // 총괄실장's private office has a baked-in character at the desk — our 총괄실장
   // stands in the open area of the room (right side, not overlapping).
   agents: {
     youtube:   { building: 'office', localX: 28, localY: 38 },
@@ -864,21 +864,21 @@ const WORLD_LAYOUT = {
  *  agent at a real desk/seat in their room, avoiding walls and furniture.
  *  The y values anchor agent FEET (sprite is 96px tall, feet at bottom). */
 const CUSTOM_MAP_DESKS: Record<string, DeskPos> = {
-  // Top-left CEO solo office (glass-walled, "Hermes_AIOS" sign on wall)
+  // Top-left 총괄실장 solo office (glass-walled, "Hermes_AIOS" sign on wall)
   ceo:        { x: 8,  y: 22 },
-  // Front desk just outside CEO's office — Secretary station
+  // Front desk just outside 총괄실장's office — Secretary station
   secretary:  { x: 18, y: 33 },
   // Top-right twin workstation pairs
   youtube:    { x: 87, y: 18 },
   instagram:  { x: 87, y: 32 },
-  // Mid-left small glass meeting pod (used as Designer's focused space)
+  // Mid-left small glass meeting pod (used as 디자인실's focused space)
   designer:   { x: 13, y: 47 },
   // Center cubicle cluster (6 desks, agents at 4 of them)
   developer:  { x: 41, y: 53 },
   business:   { x: 51, y: 53 },
   editor:     { x: 41, y: 63 },
   writer:     { x: 51, y: 63 },
-  // Bottom-center small admin desks — Researcher
+  // Bottom-center small admin desks — 수급탐정
   researcher: { x: 33, y: 82 },
 };
 
@@ -1475,11 +1475,11 @@ const LOCKED_AGENTS_DEFAULT: Record<string, boolean> = { editor: true };
    2. DEFAULT_ON: 첫 진입 시 자동 활성화. 사용자가 언제든 OFF 가능.
    3. OPTIONAL (DEFAULT_OFF): 기본 비활성, 사용자 opt-in.
    4. LOCKED (Luna): PIN 필요.
-   v2.89.109가 너무 보수적이어서 (CEO만 ON) 새 사용자가 회사 모드 켜고 "유튜브 분석해줘"
+   v2.89.109가 너무 보수적이어서 (총괄실장만 ON) 새 사용자가 회사 모드 켜고 "유튜브 분석해줘"
    하면 빈 plan 나오는 사고. 핵심 4명을 기본 ON으로 되돌려 첫 경험 회복. */
 const ALWAYS_ON_AGENTS: Set<string> = new Set(['ceo']);
 /* v2.89.156 — 데모용·신규 사용자 첫 경험 회복. "유튜브 + 매출 종합 보고서" 같은 합성 명령에서
-   현빈(business) 가 비활성이라 조용히 drop 되던 사고 차단. 옵션 전체를 기본 ON 으로. Luna 만 LOCKED 유지.
+   성과관리관(business) 가 비활성이라 조용히 drop 되던 사고 차단. 옵션 전체를 기본 ON 으로. Luna 만 LOCKED 유지.
    사용자는 언제든 직원 패널에서 개별 OFF 가능. */
 const DEFAULT_ON_AGENTS: Set<string> = new Set(['secretary', 'youtube', 'writer', 'designer', 'instagram', 'business', 'developer', 'researcher']);
 const OPTIONAL_AGENTS_DEFAULT: Set<string> = new Set(['secretary', 'youtube', 'writer', 'designer', 'instagram', 'business', 'developer', 'researcher']);
@@ -1564,7 +1564,7 @@ function readActiveAgents(): Record<string, { activatedAt: string }> {
     }
     const data = JSON.parse(fs.readFileSync(p, 'utf-8') || '{}');
     if (!data || typeof data !== 'object') return {};
-    /* v2.89.109 — ALWAYS_ON 축소(CEO만)에 따른 2차 마이그레이션. v2.89.107 사용자는
+    /* v2.89.109 — ALWAYS_ON 축소(총괄실장만)에 따른 2차 마이그레이션. v2.89.107 사용자는
        active.json에 _migrated:true 만 있고 OPTIONAL 4명만 활성화돼있을 수 있음. 그 경우
        이전엔 ALWAYS_ON 이었던 secretary·youtube·writer·designer 도 자동 활성화 (사용자
        경험 유지). 한 번만 실행: _migrated_v2 플래그로 표시. */
@@ -1683,7 +1683,7 @@ function _maybeRecommendCoderModel(webview: vscode.Webview) {
   } catch { /* never block */ }
 }
 
-/* v2.89.26 — 에이전트별 모델 라우팅. CEO·YouTube·디자이너 등 각자 다른
+/* v2.89.26 — 에이전트별 모델 라우팅. 총괄실장·YouTube·디자이너 등 각자 다른
    로컬 LLM 사용 (작은 모델은 라우팅·결정에, 큰 모델은 분석·창작에).
    설정 파일: _shared/agent_models.json. 비어있으면 default 모델 사용. */
 function _agentModelsPath(): string {
@@ -2076,12 +2076,12 @@ async function sendTelegramTyping(): Promise<void> {
 }
 
 // ============================================================
-// 📱 Telegram bidirectional bot (v2.51) — commands + CEO routing
+// 📱 Telegram bidirectional bot (v2.51) — commands + 총괄실장 routing
 // ============================================================
 // Polls Telegram getUpdates so the user can drive the AI company from
 // outside the editor. Whitelisted to the configured chat_id (no one else
 // can issue commands even if they find the bot). Free-text messages get
-// classified by a lightweight CEO call and forwarded to the right
+// classified by a lightweight 총괄실장 call and forwarded to the right
 // specialist via the existing sidebar provider.
 
 let _telegramPollTimer: NodeJS.Timeout | null = null;
@@ -2200,11 +2200,11 @@ function _pushTelegramHistory(role: 'user' | 'assistant', text: string) {
     fs.mkdirSync(path.dirname(p), { recursive: true });
     fs.appendFileSync(p, JSON.stringify(entry) + '\n');
   } catch { /* never let disk write block the bot */ }
-  /* Daily company-wide conversation log — same file CEO planner / autonomous
+  /* Daily company-wide conversation log — same file 총괄실장 planner / autonomous
      chatter / corporate dispatches all write to. Putting Telegram turns in
      here means every other agent picks them up via readRecentConversations,
      so the user can say "그 영상 어떻게 됐어?" via Telegram and Secretary's
-     answer references the same context Developer/Writer used in sidebar. */
+     answer references the same context Developer/보고관 used in sidebar. */
   try {
     if (role === 'user') {
       appendConversationLog({ speaker: '사용자(텔레그램)', emoji: '📱', body: text.trim() });
@@ -2323,7 +2323,7 @@ const TELEGRAM_HELP = `🤖 *Hermes_AIOS 봇* — 비서가 24시간 대기 중
 
 💼 *작업 분배*
 "썸네일 만들어줘" / "유튜브 트렌드 분석해줘"
-→ CEO가 적합한 에이전트에게 분배 → 결과 보고
+→ 총괄실장가 적합한 에이전트에게 분배 → 결과 보고
 
 🤖 *에이전트 직접 지시*
 "디자이너한테 로고 시안 부탁해" / "유튜브에게 컨셉 3개 뽑으라고 해"
@@ -2375,11 +2375,11 @@ async function _quickLLMCall(systemPrompt: string, userMsg: string, maxTokens = 
     return r.data?.message?.content?.toString().trim() || '';
 }
 
-const CEO_CLASSIFIER_PROMPT = _loadPrompt('ceo-classifier.md');
+const 총괄실장_CLASSIFIER_PROMPT = _loadPrompt('ceo-classifier.md');
 const SECRETARY_TELEGRAM_PROMPT = _loadPrompt('secretary-telegram.md');
 async function classifyToAgent(text: string): Promise<string> {
     try {
-        const out = await _quickLLMCall(_personalizePrompt(CEO_CLASSIFIER_PROMPT), text, 16);
+        const out = await _quickLLMCall(_personalizePrompt(총괄실장_CLASSIFIER_PROMPT), text, 16);
         const id = out.trim().toLowerCase().replace(/[^a-z]/g, '');
         if (AGENTS[id]) return id;
     } catch { /* fall through to keyword router */ }
@@ -2563,7 +2563,7 @@ async function handleTelegramCommand(text: string): Promise<void> {
        Users who type "/뭐하고있어" should get an answer, not a rejection. */
 
     /* Free text → Secretary mediates. Secretary decides whether to answer
-       directly (schedule/status questions), forward to CEO (work that needs
+       directly (schedule/status questions), forward to 총괄실장 (work that needs
        dispatch), or ask for more info. This is the "Secretary as gateway"
        behavior — every Telegram interaction goes through the agent who's
        supposed to be the messenger. */
@@ -2575,7 +2575,7 @@ async function handleTelegramCommand(text: string): Promise<void> {
         try {
             const targetAgent = await classifyToAgent(trimmed);
             const a = AGENTS[targetAgent];
-            await sendTelegramReport(`🧭 (비서 응답 실패 → CEO 라우팅) ${a.emoji} *${a.name}*\n\n_"${trimmed.slice(0, 120)}"_\n\n_답변 준비되는 대로 보내드릴게요._`);
+            await sendTelegramReport(`🧭 (비서 응답 실패 → 총괄실장 라우팅) ${a.emoji} *${a.name}*\n\n_"${trimmed.slice(0, 120)}"_\n\n_답변 준비되는 대로 보내드릴게요._`);
             _activeChatProvider?.sendPromptFromExtension?.(trimmed, { fromTelegram: true, corporate: true });
         } catch { /* truly silent fail */ }
     }
@@ -2629,7 +2629,7 @@ function _extractFirstJsonObject(raw: string): any | null {
    라이브 상태 + 자격증명 상태 점검. 일반론 답변 대신 사실만 — 사용자가
    "이건 되고 이건 안 되네" 즉시 파악. */
 function _buildCapabilityReport(): string {
-    const lines: string[] = ['👋 *영숙이에요. 지금 제가 도울 수 있는 건:*\n'];
+    const lines: string[] = ['👋 *비서실장이에요. 지금 제가 도울 수 있는 건:*\n'];
     const tg = readTelegramConfig();
     const calOk = isCalendarWriteConnected();
     /* 1) 비서 본인의 직접 능력 */
@@ -2639,7 +2639,7 @@ function _buildCapabilityReport(): string {
     lines.push('');
     lines.push('*📨 텔레그램 양방향*');
     if (tg.token && tg.chatId) lines.push('  ✅ 작동 중 — 명령 받고 보고 보내기');
-    else lines.push('  ⚠️ 미연결 — 직원 보기 → 영숙 카드 → ⚙️에서 봇 토큰 입력');
+    else lines.push('  ⚠️ 미연결 — 직원 보기 → 비서실장 카드 → ⚙️에서 봇 토큰 입력');
     lines.push('');
     lines.push('*📋 작업 추적*');
     lines.push('  ✅ "내일까지 X 해야 해" → 자동 등록, 마감 임박 시 알림');
@@ -2666,14 +2666,14 @@ function _buildCapabilityReport(): string {
     agentSummary.push('  🎨 *디자이너* — ✅ 시안 카피·무드보드·브랜드 컬러 가이드');
     agentSummary.push('  ✍️ *작가* — ✅ 후크·스크립트·블로그·영상 카피');
     agentSummary.push('  🎵 *루나* — ✅ BGM 자동 생성·영상-음악 합성·사운드 디자인');
-    agentSummary.push('  💼 *현빈* — ✅ 가격·KPI·전략 분석');
+    agentSummary.push('  💼 *성과관리관* — ✅ 가격·KPI·전략 분석');
     agentSummary.push('  💻 *코다리* — ✅ 사이트·자동화·API 코드');
     agentSummary.push('  🔍 *리서처* — ✅ 트렌드·경쟁사·사실 확인');
-    agentSummary.push('  📷 *Instagram* — ✅ 릴스 기획·해시태그·카피');
+    agentSummary.push('  📷 *기록채널* — ✅ 릴스 기획·해시태그·카피');
     lines.push(agentSummary.join('\n'));
     lines.push('');
     lines.push('*예시:*');
-    lines.push('• "다음 영상 컨셉 5개 뽑아줘" → CEO가 YouTube·작가에게 분배');
+    lines.push('• "다음 영상 컨셉 5개 뽑아줘" → 총괄실장가 YouTube·작가에게 분배');
     lines.push('• "썸네일 시안 만들어줘" → 디자이너로');
     lines.push('• "오늘 일정 뭐야?" → 제가 바로 답변');
     lines.push('• "에이전트 뭐 하고 있어?" → 진행 중 작업 모두');
@@ -2799,7 +2799,7 @@ async function handleTelegramViaSecretary(userText: string): Promise<void> {
             const trackerMd = trackerToMarkdown({ onlyOpen: true, max: 12 });
             if (trackerMd) ctxBlock += `\n\n[지금 진행 중인 작업 (추적기)]\n${trackerMd.slice(0, 1500)}`;
         } catch { /* ignore */ }
-        /* Recent CEO decisions — last 1500 chars of the decisions log gives
+        /* Recent 총괄실장 decisions — last 1500 chars of the decisions log gives
            Secretary enough to answer "최근에 뭐 결정했어?" / "어제 뭐 했어?". */
         if (dec.trim()) ctxBlock += `\n\n[최근 의사결정 로그]\n${dec.slice(-1500)}`;
         /* Recent session reports — give Secretary a quick view of the last
@@ -2834,7 +2834,7 @@ async function handleTelegramViaSecretary(userText: string): Promise<void> {
     if (historyBlock) {
         ctxBlock += `\n\n[최근 텔레그램 대화 (참조용)]\n${historyBlock}\n\n_사용자가 "그거"·"방금 그 일정"·"그 회의" 라고 하면 위 대화에서 어떤 일정/주제인지 찾아서 처리하세요._`;
     }
-    /* Company-wide conversation log — same source CEO planner reads. Captures
+    /* Company-wide conversation log — same source 총괄실장 planner reads. Captures
        sidebar dialogues, autonomous agent chatter, dispatch results. Lets
        Secretary answer cross-channel follow-ups like "developer가 사이트 어떻게
        하고 있어?" without re-dispatching. Conservative size (1500 chars) to
@@ -3096,9 +3096,9 @@ async function handleTelegramViaSecretary(userText: string): Promise<void> {
 
     /* ── Existing reply / dispatch / ask paths ─────────────────────── */
     if (mode === 'dispatch') {
-        await sendTelegramReport(`📨 *비서 → CEO*\n\n${replyText || '작업을 분배할게요'}${trailer}`);
-        _pushTelegramHistory('assistant', `(CEO에게 전달) ${replyText || '작업을 분배할게요'}`);
-        try { _activeChatProvider?.postSystemNote?.(`비서 → CEO 전달: ${replyText.slice(0, 300)}`, '📨'); } catch { /* ignore */ }
+        await sendTelegramReport(`📨 *비서 → 총괄실장*\n\n${replyText || '작업을 분배할게요'}${trailer}`);
+        _pushTelegramHistory('assistant', `(총괄실장에게 전달) ${replyText || '작업을 분배할게요'}`);
+        try { _activeChatProvider?.postSystemNote?.(`비서 → 총괄실장 전달: ${replyText.slice(0, 300)}`, '📨'); } catch { /* ignore */ }
         const dispatchInstr = String(parsed.dispatch_to_ceo || userText).slice(0, 1500);
         /* corporate:true 추가 — _handleCorporatePrompt를 직접 호출해서 진짜
            멀티 에이전트 디스패치 발동. 이전엔 webview를 거쳐서 단일 LLM
@@ -4147,7 +4147,7 @@ function stopDailyBriefingLoop() {
 
 /* ── v2.89.137 — Revenue Watcher (PayPal polling) ──────────────────────────
    5분마다 paypal_revenue.py OUTPUT=json 호출 → 마지막 본 transaction id 와
-   비교 → 새 결제 발견 시 텔레그램 푸시 + 사무실 영숙 책상 펄스. paypal 미설정
+   비교 → 새 결제 발견 시 텔레그램 푸시 + 사무실 비서실장 책상 펄스. paypal 미설정
    시 silently skip. 이게 진짜 "AI 회사가 자고 있어도 결제 알아차림" 의 코어. */
 let _revenueWatcherTimer: NodeJS.Timeout | null = null;
 const _REVENUE_LAST_SEEN_KEY = 'revenueLastSeenTxId';
@@ -4213,7 +4213,7 @@ async function _runRevenueWatcherOnce(): Promise<void> {
                     body: `${arrow}: ${subj} ${amount}`
                 });
             } catch { /* ignore */ }
-            /* 사무실 영숙 책상 펄스 + 알림 */
+            /* 사무실 비서실장 책상 펄스 + 알림 */
             try {
                 _activeChatProvider?.pulseAgent?.('secretary', isRefund ? '↩️' : '💰', 6000, `${arrow}: ${amount}`);
             } catch { /* ignore */ }
@@ -5294,7 +5294,7 @@ function _formatDueLabel(iso: string): string {
 
 let _taskTreeProvider: TaskTreeProvider | null = null;
 
-/* Heuristic: from a finished CEO dispatch (plan + outputs), find
+/* Heuristic: from a finished 총괄실장 dispatch (plan + outputs), find
    matching open tracker tasks (created within last 5 min by Secretary
    for THIS user request) and mark them done. Avoids LLM round-trip. */
 function autoMarkTrackerFromDispatch(plan: { brief?: string; tasks?: { agent: string; task: string }[] } | null, sessionDir: string, ceoSynthesis: string) {
@@ -5303,7 +5303,7 @@ function autoMarkTrackerFromDispatch(plan: { brief?: string; tasks?: { agent: st
     const tracker = readTracker();
     const now = Date.now();
     /* 24h window — covers overnight/multi-step tasks. Original 10-min was
-       too narrow: if user issued "이거 해" yesterday and CEO finishes today,
+       too narrow: if user issued "이거 해" yesterday and 총괄실장 finishes today,
        the task would stay pending forever. */
     const fresh = tracker.tasks.filter(t =>
       t.status !== 'done' && t.status !== 'cancelled' &&
@@ -5315,7 +5315,7 @@ function autoMarkTrackerFromDispatch(plan: { brief?: string; tasks?: { agent: st
       if (ft.owner !== 'agent' && ft.owner !== 'mixed') continue;
       const evidence = `완료: sessions/${path.basename(sessionDir)}/_report.md\n` +
         plan.tasks.slice(0, 3).map(t => `- ${AGENTS[t.agent]?.name || t.agent}: ${t.task.slice(0, 80)}`).join('\n') +
-        (ceoSynthesis ? `\n\nCEO 종합 요점: ${ceoSynthesis.slice(0, 200)}` : '');
+        (ceoSynthesis ? `\n\n총괄실장 종합 요점: ${ceoSynthesis.slice(0, 200)}` : '');
       updateTrackerTask(ft.id, {
         status: 'done',
         sessionDir: path.basename(sessionDir),
@@ -6218,7 +6218,7 @@ function _getLastSpecialistOutput(): { agentId: string; agentName: string; body:
     const convDir = getConversationsDir();
     const today = new Date().toISOString().slice(0, 10);
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    /* Index agent name → id for reverse lookup. Skip CEO (planner role,
+    /* Index agent name → id for reverse lookup. Skip 총괄실장 (planner role,
        not a specialist whose patterns we'd reuse). */
     const nameToId = new Map<string, string>();
     for (const id of SPECIALIST_IDS) {
@@ -6410,7 +6410,7 @@ function routeBrainInjectionToAgents(filePath: string, fileName: string): string
   matches.sort((a, b) => b.score - a.score);
   const winners = matches.slice(0, 2).map(m => m.id);
 
-  /* Always tell CEO too — CEO needs to know new knowledge arrived even if
+  /* Always tell 총괄실장 too — 총괄실장 needs to know new knowledge arrived even if
      it doesn't match a specialist cleanly. */
   const recipients = Array.from(new Set(['ceo', ...winners]));
 
@@ -6482,7 +6482,7 @@ ${_GOAL_PREAMBLE}
 - 매번 다음 단계 1줄을 명시
 - 메모리(\`memory.md\`)에 누적된 댓글·반응 키워드를 후크에 반영
 `,
-  instagram: `# 📸 Instagram 에이전트 — 나의 미션
+  instagram: `# 📸 기록채널 에이전트 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
@@ -6496,7 +6496,7 @@ ${_GOAL_PREAMBLE}
 ## 작업 원칙
 - 매 산출물마다 게시 시간 + 후속 스토리 아이디어 1개
 `,
-  designer: `# 🎨 Designer 에이전트 — 나의 미션
+  designer: `# 🎨 디자인실 에이전트 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
@@ -6573,7 +6573,7 @@ ${_GOAL_PREAMBLE}
 - 사용자 데이터·API 키를 코드에 그대로 박기.
 - 테스트 안 돌려보고 "수정 완료했습니다" 출력 → 거짓말.
 `,
-  business: `# 💼 현빈 — 비즈니스 전략가 — 나의 미션
+  business: `# 💼 성과관리관 — 비즈니스 전략가 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
@@ -6616,7 +6616,7 @@ ${_GOAL_PREAMBLE}
 - 막연한 "신나는 곡" X — 장르·BPM·길이 명시
 - 영상 길이에 맞춰 BGM loop/fade 자동 결정
 `,
-  writer: `# ✍️ Writer 에이전트 — 나의 미션
+  writer: `# ✍️ 보고관 에이전트 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
@@ -6630,7 +6630,7 @@ ${_GOAL_PREAMBLE}
 ## 작업 원칙
 - 한 산출물에 후크/본문/CTA를 명확히 분리
 `,
-  researcher: `# 🔍 Researcher 에이전트 — 나의 미션
+  researcher: `# 🔍 수급탐정 에이전트 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
@@ -6876,7 +6876,7 @@ const AGENT_TOOLS_CATALOG: Record<string, { tool: string; desc: string; planned?
     ceo: [
         { tool: 'approval_gate', desc: '위험 액션(deploy/post/send/rm) 사용자 승인 게이트', planned: true },
         { tool: 'team_briefing', desc: '주간 전체 회의 자동 진행 + 회의록 정리', planned: true },
-        { tool: 'router', desc: '사용자 명령 → 적합한 specialist로 분배 (CEO 클래시파이어 내장)' }
+        { tool: 'router', desc: '사용자 명령 → 적합한 specialist로 분배 (총괄실장 클래시파이어 내장)' }
     ],
     youtube: [
         { tool: 'youtube_account', desc: 'YouTube Data API v3 + OAuth 연결' },
@@ -6939,7 +6939,7 @@ const AGENT_TOOLS_CATALOG: Record<string, { tool: string; desc: string; planned?
     researcher: [
         { tool: 'web_search', desc: 'Brave/DuckDuckGo 검색 (Connected)', planned: true },
         { tool: 'page_fetcher', desc: '본문 추출 + 출처 인용', planned: true },
-        { tool: 'monitor_daily', desc: '매일 내 분야 뉴스 → CEO 브리핑', planned: true }
+        { tool: 'monitor_daily', desc: '매일 내 분야 뉴스 → 총괄실장 브리핑', planned: true }
     ]
 };
 
@@ -7616,7 +7616,7 @@ function getConversationsDir(): string {
 }
 
 /** Append one entry to the day's running conversation log. Living transcript
- *  of every interaction in the company — user commands, CEO briefs, each
+ *  of every interaction in the company — user commands, 총괄실장 briefs, each
  *  agent's output, confer turns, final reports. Stored in 00_Raw alongside
  *  other raw knowledge so it participates in brain queries. */
 function appendConversationLog(entry: { speaker: string; emoji?: string; section?: string; body: string }) {
@@ -7637,7 +7637,7 @@ function appendConversationLog(entry: { speaker: string; emoji?: string; section
 }
 
 /** Read the last N chars (across today + yesterday) of the conversation log
- *  for use as system-prompt context. Lets CEO recall what the company has
+ *  for use as system-prompt context. Lets 총괄실장 recall what the company has
  *  recently been working on without needing the full file. */
 function readRecentConversations(maxChars = 2500): string {
   try {
@@ -7667,19 +7667,19 @@ function makeSessionDir(): string {
   return dir;
 }
 
-const CEO_PLANNER_PROMPT = _loadPrompt('ceo-planner.md');
-/* Conversational CEO prompt — used for the casual-chat fast path so a "안녕"
+const 총괄실장_PLANNER_PROMPT = _loadPrompt('ceo-planner.md');
+/* Conversational 총괄실장 prompt — used for the casual-chat fast path so a "안녕"
    doesn't crash the JSON planner. Small models will reply with a polite
    greeting no matter how strict the JSON instruction; we detect those turns
    up front and route them here instead of fighting the model. */
-const CEO_CHAT_PROMPT = _loadPrompt('ceo-chat.md');
+const 총괄실장_CHAT_PROMPT = _loadPrompt('ceo-chat.md');
 /* Reads the user's chosen Secretary bridge scope. The setting controls how
    much of the user↔company interaction Secretary mediates:
-     off          — Secretary only handles Telegram. Sidebar talks to CEO direct.
-     output_only  — sidebar input goes to CEO as before, but Secretary writes
+     off          — Secretary only handles Telegram. Sidebar talks to 총괄실장 direct.
+     output_only  — sidebar input goes to 총괄실장 as before, but Secretary writes
                     a 1-line "사장님께 정리" card after each dispatch.
      full         — sidebar input also goes to Secretary first; Secretary
-                    either replies directly or escalates to CEO planner.
+                    either replies directly or escalates to 총괄실장 planner.
    Exposed as a setting (not a memory) because it changes runtime routing
    meaningfully and the user should be able to flip it from the standard VS
    Code settings UI. Educational toggle in the spirit of feedback_educational_toggles. */
@@ -7696,11 +7696,11 @@ function readSecretaryBridgeMode(): SecretaryBridgeMode {
 /* Lightweight JSON triage prompt — used only when bridge mode is 'full'.
    Secretary decides whether the user's sidebar message is something it can
    answer itself (greeting, schedule lookup, simple Q&A) or needs to be
-   escalated to the CEO planner for multi-agent work. Output is strict JSON
+   escalated to the 총괄실장 planner for multi-agent work. Output is strict JSON
    so we can branch deterministically. */
 const SECRETARY_TRIAGE_PROMPT = _loadPrompt('secretary-triage.md');
 /* Heuristic for "this is small talk, not a work order". When true we skip
-   the JSON planner and just have CEO chat back. Conservative: only matches
+   the JSON planner and just have 총괄실장 chat back. Conservative: only matches
    short greetings/acks; anything longer or with action verbs falls through
    to the full planner. */
 function _isCasualChat(text: string): boolean {
@@ -7716,7 +7716,7 @@ function _isCasualChat(text: string): boolean {
     return false;
 }
 
-const CEO_REPORT_PROMPT = _loadPrompt('ceo-report.md');
+const 총괄실장_REPORT_PROMPT = _loadPrompt('ceo-report.md');
 const CONFER_PROMPT = _loadPrompt('confer.md');
 const DECISIONS_EXTRACT_PROMPT = _loadPrompt('decisions-extract.md');
 /* v2.87.11 — 에이전트가 외부 API에 의존할 때, 자격증명이 없으면 그 사실을
@@ -7737,9 +7737,9 @@ async function prefetchAgentRealtimeData(agentId: string): Promise<string> {
     candidates.push({ tool: 'my_videos_check.py', label: 'YouTube 채널 영상 분석 (실제 API 데이터)' });
     candidates.push({ tool: 'youtube_account.py', label: 'YouTube 설정 확인 (fallback)' });
   }
-  /* v2.89.136 — business prefetch. 현빈에게 매출 질문 들어오면 paypal_revenue.py
+  /* v2.89.136 — business prefetch. 성과관리관에게 매출 질문 들어오면 paypal_revenue.py
      자동 실행 → 거래 + 게임별 분류 + 환불·수수료 마크다운 컨텍스트로 주입 →
-     현빈이 환각 없이 진짜 숫자로 분석. 유튜브(레오) 와 동일 패턴. */
+     성과관리관이 환각 없이 진짜 숫자로 분석. 유튜브(시황영상관) 와 동일 패턴. */
   if (agentId === 'business') {
     candidates.push({ tool: 'paypal_revenue.py', label: 'PayPal 매출 분석 (게임·프로젝트별, 실제 거래 데이터)' });
   }
@@ -7814,7 +7814,7 @@ function buildAgentConfigStatus(agentId: string): string {
         lines.push('');
         lines.push(`[필수 응답 규칙]`);
         lines.push(`반드시 사용자에게 다음과 같이 안내하세요:`);
-        lines.push(`> 📊 채널 분석을 하려면 YouTube API 키와 채널 ID가 필요해요. 헤더 우측 "👥 직원 에이전트 보기" 버튼 → YouTube 카드 ⚙️ 클릭 → API 키와 채널 ID 입력 후 다시 요청해주세요.`);
+        lines.push(`> 📊 채널 분석을 하려면 YouTube API 키와 채널 ID가 필요해요. 헤더 우측 "👥 직원 현황" 버튼 → YouTube 카드 ⚙️ 클릭 → API 키와 채널 ID 입력 후 다시 요청해주세요.`);
         lines.push(`추측이나 일반론으로 답하지 말고, 위 안내만 짧게 출력하세요. 작업은 미완료(📊 평가: 대기)로 표시.`);
       } else if (!oauthOk) {
         /* v2.89.8 — Analytics OAuth가 비연결인데 사용자가 시청 지속률 등을 요청하면,
@@ -7843,11 +7843,11 @@ function buildAgentConfigStatus(agentId: string): string {
       lines.push(`\n\n[⚠️ 비서 자격증명 일부 미설정]`);
       if (!tg.token || !tg.chatId) lines.push(`- 텔레그램 봇 미연결 (보고/메신저 기능 제한)`);
       if (!calOk) lines.push(`- Google Calendar OAuth 미연결 (일정 추가/수정 불가)`);
-      lines.push(`사용자가 해당 기능을 요청하면 "직원 보기 → 영숙 카드 → ⚙️에서 연결해주세요"라고 안내하세요.`);
+      lines.push(`사용자가 해당 기능을 요청하면 "직원 보기 → 비서실장 카드 → ⚙️에서 연결해주세요"라고 안내하세요.`);
     }
   }
   /* v2.89.7 — YouTube에 의존하는 다른 에이전트들도 OAuth 안내 절대 하지 않게.
-     Researcher, Business 등이 YouTube 데이터를 사용할 때 "OAuth 필요" 같은
+     수급탐정, Business 등이 YouTube 데이터를 사용할 때 "OAuth 필요" 같은
      막다른 안내로 빙빙 도는 패턴을 끊음. */
   if (agentId === 'researcher' || agentId === 'business' || agentId === 'writer' || agentId === 'editor') {
     const oauthOk = isYoutubeOAuthConnected();
@@ -7864,7 +7864,7 @@ function buildSpecialistPrompt(agentId: string): string {
   const a = AGENTS[agentId];
   const company = readCompanyName() || '1인 기업';
   /* v2.89.45 — 페르소나 블록. 에이전트별 voice 정의가 있으면 주입 → 똑같은 LLM이라도
-     레오는 데이터 중심 솔직한 톤, 영숙은 정중·친근한 톤으로 답함. 인격 있는 동료처럼 보임. */
+     시황영상관는 데이터 중심 솔직한 톤, 비서실장은 정중·친근한 톤으로 답함. 인격 있는 동료처럼 보임. */
   const personaBlock = a.persona
     ? `\n\n[당신의 톤·말투 — 항상 이 페르소나 유지]\n${a.persona}`
     : '';
@@ -8279,7 +8279,7 @@ export function activate(context: vscode.ExtensionContext) {
     // 12초 뒤 자동 호출이 "model failed to load"로 실패해 사용자가 무엇이
     // 잘못됐는지 모르는 채로 에러를 보는 케이스가 보고됨.
     // 사용자가 1인 기업 모드(👔)를 직접 켜는 시점에 그날의 첫 브리핑이 흐릅니다.
-    // 24시간 ON의 진짜 의미: idle 여부와 상관없이 15분마다 CEO 사이클.
+    // 24시간 ON의 진짜 의미: idle 여부와 상관없이 15분마다 총괄실장 사이클.
     // 사이드바 1인 기업 모드(👔) ON/OFF와도 무관 — 백그라운드에서 계속 일함.
     provider.startAutoCycle(15, 0);
 
@@ -8995,7 +8995,7 @@ export function activate(context: vscode.ExtensionContext) {
                 CompanyDashboardPanel.createOrShow(context.extensionUri);
             } catch (e: any) {
                 /* v2.89.14 — 진단: 대시보드 패널 생성 실패 시 사용자에게 안내. */
-                vscode.window.showErrorMessage(`👥 직원 에이전트 보기 열기 실패: ${e?.message || e}. (Cmd+Shift+P → "Developer: Reload Window" 시도)`);
+                vscode.window.showErrorMessage(`👥 직원 현황 열기 실패: ${e?.message || e}. (Cmd+Shift+P → "Developer: Reload Window" 시도)`);
                 console.error('[dashboard.open] failed:', e);
             }
         }),
@@ -11034,7 +11034,7 @@ class CompanyDashboardPanel {
         }
         const panel = vscode.window.createWebviewPanel(
             CompanyDashboardPanel.viewType,
-            '👥 직원 에이전트 보기',
+            '👥 직원 현황',
             column,
             { enableScripts: true, retainContextWhenHidden: true }
         );
@@ -11059,7 +11059,7 @@ class CompanyDashboardPanel {
                         if (_activeChatProvider) {
                             const model = _activeChatProvider.getDefaultModel();
                             _activeChatProvider.runCorporatePromptExternal(
-                                '현빈아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
+                                '성과관리관아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
                                 model
                             ).catch(() => { /* ignore */ });
                         }
@@ -11443,7 +11443,7 @@ class CompanyDashboardPanel {
 
         /* Build agent team section — one card per agent with persona + open
            task count + autonomy level + most recent memory line + custom
-           profile photo when available (영숙/레오). The photo URI is resolved
+           profile photo when available (비서실장/시황영상관). The photo URI is resolved
            through the panel's webview so the asset is reachable from the
            sandboxed iframe. */
         const agentTeam = AGENT_ORDER.map(id => {
@@ -11566,7 +11566,7 @@ class CompanyDashboardPanel {
                 hired: isAgentHired(id),
                 lockable: !!LOCKED_AGENTS_DEFAULT[id],
                 /* v2.89.107 — 활성/비활성 토글 시스템. active=false 면 비활성 카드 (페이드).
-                   클릭 시 간단 confirm → active=true. CEO는 항상 활성. */
+                   클릭 시 간단 confirm → active=true. 총괄실장는 항상 활성. */
                 active: isAgentActive(id),
                 togglable: isAgentTogglable(id),
                 alwaysOn: ALWAYS_ON_AGENTS.has(id),
@@ -11708,7 +11708,7 @@ class CompanyDashboardPanel {
         </svg>
       </div>
       <div>
-        <div class="hero-eyebrow">CONNECT AI · 직원 에이전트 보기</div>
+        <div class="hero-eyebrow">CONNECT AI · 직원 현황</div>
         <div class="hero-title" id="companyName">불러오는 중…</div>
         <div class="hero-meta">
           <span class="meta-pill" id="todayLabel"></span>
@@ -11739,7 +11739,7 @@ class CompanyDashboardPanel {
     </div>
     <div class="team-legend">
       <span class="tl-chip tl-active" data-filter="all">전체 <span class="tl-count" id="tlAll">0</span></span>
-      <span class="tl-chip" data-filter="online" title="활성 — CEO가 호출 가능"><span class="tl-dot tl-dot-on"></span>활성 <span class="tl-count" id="tlOn">0</span></span>
+      <span class="tl-chip" data-filter="online" title="활성 — 총괄실장가 호출 가능"><span class="tl-dot tl-dot-on"></span>활성 <span class="tl-count" id="tlOn">0</span></span>
       <span class="tl-chip" data-filter="optional" title="OPT-IN 비활성 — 카드 클릭해서 활성화"><span class="tl-dot tl-dot-opt"></span>옵션 <span class="tl-count" id="tlOpt">0</span></span>
       <span class="tl-chip" data-filter="locked" title="채용 PIN 필요"><span class="tl-dot tl-dot-lock"></span>채용 대기 <span class="tl-count" id="tlLock">0</span></span>
     </div>
@@ -11753,7 +11753,7 @@ class CompanyDashboardPanel {
     <div class="rev-inner">
       <div class="rev-left">
         <div class="rev-eyebrow">PERFORMANCE COMMAND CENTER · <span class="rev-live"><span class="rev-pulse"></span> LIVE</span></div>
-        <div class="rev-title">📈 수익률 관리 센터</div>
+        <div class="rev-title">📈 수익률 관제센터</div>
         <div class="rev-sub" id="revSubtitle">Hermes 성과 데이터를 확인하는 중…</div>
       </div>
       <div class="rev-kpis" id="revKpis">
@@ -11767,10 +11767,10 @@ class CompanyDashboardPanel {
       <div class="rev-actions">
         <button class="rev-btn primary" id="openRevDashBtn">
           <span class="rev-btn-glow"></span>
-          <span>풀스크린 수익률 대시보드</span>
+          <span>풀스크린 수익률 관제센터</span>
           <span class="rev-btn-arrow">→</span>
         </button>
-        <button class="rev-btn ghost" id="askHyunbinBtn" title="현빈 에이전트에게 매출 분석 요청">🧠 현빈에게 분석 의뢰</button>
+        <button class="rev-btn ghost" id="askHyunbinBtn" title="성과관리관 에이전트에게 매출 분석 요청">🧠 성과관리관에게 분석 의뢰</button>
       </div>
     </div>
   </section>
@@ -11964,7 +11964,7 @@ const API_SERVICES: ApiServiceDef[] = [
     },
     {
         id: 'instagram',
-        name: 'Instagram (Meta Graph)',
+        name: '기록채널 (Meta Graph)',
         icon: '📷',
         summary: '인스타 비즈니스 계정 게시 + DM/댓글 분석.',
         helpUrl: 'https://developers.facebook.com/',
@@ -12413,7 +12413,7 @@ class ApiConnectionsPanel {
     <div>
       <div class="eyebrow">CONNECT AI · 외부 연결</div>
       <h1>API 키 한 곳에서 관리</h1>
-      <div class="hero-sub">텔레그램 · YouTube · Google Calendar · GitHub · Instagram — 모든 자격증명을 한 패널에서 입력하고 저장합니다. 같은 값이 <code>_agents/&lt;id&gt;/config.md</code>로 저장돼요.</div>
+      <div class="hero-sub">텔레그램 · YouTube · Google Calendar · GitHub · 기록채널 — 모든 자격증명을 한 패널에서 입력하고 저장합니다. 같은 값이 <code>_agents/&lt;id&gt;/config.md</code>로 저장돼요.</div>
     </div>
   </div>
 </header>
@@ -12445,7 +12445,7 @@ class RevenueDashboardPanel {
         }
         const panel = vscode.window.createWebviewPanel(
             RevenueDashboardPanel.viewType,
-            '📈 수익률 대시보드',
+            '📈 수익률 관제센터',
             column,
             { enableScripts: true, retainContextWhenHidden: true }
         );
@@ -12521,10 +12521,10 @@ class RevenueDashboardPanel {
   <header class="hero">
     <div class="hero-mark">H</div>
     <div class="hero-info">
-      <div class="eyebrow">HERMES_AIOS · PERFORMANCE COMMAND CENTER</div>
-      <h1>수익률 대시보드</h1>
+      <div class="eyebrow">HERMES_AIOS · TRADING COMMAND CENTER</div>
+      <h1>수익률 관제센터</h1>
       <div class="hero-sub">
-        Hermes 매매 성과 분석 · 수익률/승률/거래수 추적 · <span class="live">LIVE</span>
+        Hermes 매매 관제 · 수익률/수급/리스크 추적 · <span class="live">LIVE</span>
         <span style="margin-left: 8px; color: var(--text-3); font-size: 0.8rem;" id="generated"></span>
       </div>
     </div>
@@ -12536,11 +12536,11 @@ class RevenueDashboardPanel {
 
   <div id="emptyArea" class="hidden"></div>
 
-  <!-- CEO summary row -->
+  <!-- 총괄실장 summary row -->
   <div class="row" style="margin-top: 20px;">
     <div class="card" style="grid-column: 1 / -1;">
       <div class="section">
-        <h2>CEO 요약</h2>
+        <h2>사장님 브리핑</h2>
         <div id="ceoSummaryBox" style="
           display:flex;
           align-items:center;
@@ -12601,7 +12601,7 @@ class RevenueDashboardPanel {
   <div class="row" style="margin-top: 20px;">
     <div class="card" style="grid-column: 1 / -1;">
       <div class="section">
-        <h2>시장 뷰</h2>
+        <h2>시장 온도</h2>
         <div id="marketViewBox" style="display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center;">
           <div id="marketViewBadge" style="font-size:1.65rem;font-weight:1000;color:#67e8f9;text-shadow:0 0 12px rgba(103,232,249,.7);">UNKNOWN</div>
           <div>
@@ -12617,7 +12617,7 @@ class RevenueDashboardPanel {
   <div class="row" style="margin-top: 20px;">
     <div class="card" style="grid-column: 1 / -1;">
       <div class="section">
-        <h2>리스크 관제</h2>
+        <h2>방패 상태</h2>
         <div id="riskStatusBox" style="display:grid;grid-template-columns:180px repeat(4,minmax(0,1fr));gap:12px;align-items:stretch;"></div>
       </div>
     </div>
@@ -12627,7 +12627,7 @@ class RevenueDashboardPanel {
   <div class="row" style="margin-top: 20px;">
     <div class="card" style="grid-column: 1 / -1;">
       <div class="section">
-        <h2>외국인·기관 수급</h2>
+        <h2>돈의 흐름</h2>
         <div id="investorFlowBox" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;"></div>
       </div>
     </div>
@@ -12637,7 +12637,7 @@ class RevenueDashboardPanel {
   <div class="row">
     <div class="card">
       <div class="section">
-        <h2>30일 일별 손익 추이</h2>
+        <h2>손익 흐름</h2>
         <div class="spark-wrap">
           <svg class="spark-svg" id="sparkSvg" viewBox="0 0 800 160" preserveAspectRatio="none"></svg>
         </div>
@@ -12645,7 +12645,7 @@ class RevenueDashboardPanel {
     </div>
     <div class="card">
       <div class="section">
-        <h2>성과 구성</h2>
+        <h2>손익 구성</h2>
         <div class="donut-wrap">
           <div class="donut-rel">
             <svg class="donut-svg" id="donutSvg" viewBox="0 0 200 200"></svg>
@@ -12664,13 +12664,13 @@ class RevenueDashboardPanel {
   <div class="row" style="margin-top: 20px;">
     <div class="card">
       <div class="section">
-        <h2>종목/전략별 상세</h2>
+        <h2>매매 전적</h2>
         <div id="projBars"></div>
       </div>
     </div>
     <div class="card">
       <div class="section">
-        <h2>최근 매매</h2>
+        <h2>최근 체결</h2>
         <div class="feed" id="feed">
           <div class="skeleton" style="height: 60px; margin-bottom: 10px;"></div>
           <div class="skeleton" style="height: 60px; margin-bottom: 10px;"></div>
@@ -12967,18 +12967,18 @@ class OfficePanel {
                     this._sendInit();
                     break;
                 case 'openRevenueDashboard':
-                    /* v2.89.143 — 가상 사무실 HUD 클릭 → 풀스크린 수익률 대시보드 */
+                    /* v2.89.143 — 가상 사무실 HUD 클릭 → 풀스크린 수익률 관제센터 */
                     RevenueDashboardPanel.createOrShow();
                     break;
                 case 'askHyunbinRevenue': {
                     /* v2.89.146 — 매출 shortcut 발동 위해 corporate dispatch 직접 호출
                        (injectPrompt 는 bypassCorporate=true 라 명시적 호출 라우팅·shortcut
                        건너뛰는 버그). runCorporatePromptExternal 로 specialist dispatch
-                       진입 → "현빈아" explicit detection → _tryRevenueShortcut 발동. */
+                       진입 → "성과관리관아" explicit detection → _tryRevenueShortcut 발동. */
                     try {
                         const model = provider.getDefaultModel();
                         provider.runCorporatePromptExternal(
-                            '현빈아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
+                            '성과관리관아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
                             model
                         ).catch((e) => {
                             try { panel.webview.postMessage({ type: 'error', value: `⚠️ ${e?.message || e}` }); } catch { /* ignore */ }
@@ -13078,7 +13078,7 @@ class OfficePanel {
                             recentSessions = entries.sort().slice(-5).reverse();
                             sessionCount = entries.length;
                         }
-                        /* Profile photo (영숙/레오 등) — convert to a webview URI so
+                        /* Profile photo (비서실장/시황영상관 등) — convert to a webview URI so
                            the modal can render the real face instead of just the
                            sprite. Empty string when no custom photo is declared. */
                         let profileImageUri = '';
@@ -13533,7 +13533,7 @@ body{display:flex;flex-direction:column}
 /* === Unified office stage — ONE pre-built office bg fills the floor area ===
    stageInner has a fixed aspect-ratio matching the bg image (512×544).
    Agents are children of stageInner and use % coords that map directly to
-   the bg image, so a character at (78,80)% lands inside the CEO office
+   the bg image, so a character at (78,80)% lands inside the 총괄실장 office
    regardless of panel size. */
 .office-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0;background:#070A0F}
 /* stageInner sized inline by fitStage() to maintain world aspect ratio (1400/700). */
@@ -13631,7 +13631,7 @@ body.floorplan .conf-room,body.floorplan .location{display:none!important}
 .desk .ds-screen::before{content:'';position:absolute;inset:0;z-index:1}
 
 /* Per-agent screen content */
-/* CEO: command graph with sweeping radar arm */
+/* 총괄실장: command graph with sweeping radar arm */
 .desk[data-agent="ceo"] .ds-screen::before{background:radial-gradient(circle at 50% 50%,rgba(0,255,65,.4) 0%,rgba(0,255,65,0) 1px,rgba(0,255,65,.1) 2px,rgba(0,255,65,0) 3px,rgba(0,255,65,.1) 6px,rgba(0,255,65,0) 7px,rgba(0,255,65,.08) 12px,rgba(0,255,65,0) 13px),conic-gradient(from 0deg,rgba(0,255,65,.5),transparent 70%);animation:radarSweep 4s linear infinite}
 @keyframes radarSweep{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
@@ -13639,7 +13639,7 @@ body.floorplan .conf-room,body.floorplan .location{display:none!important}
 .desk[data-agent="developer"] .ds-screen::before{background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(34,211,238,.7) 3px 4px,transparent 4px 7px,rgba(34,211,238,.4) 7px 8px,transparent 8px 12px,rgba(34,211,238,.55) 12px 13px,transparent 13px 16px,rgba(34,211,238,.3) 16px 17px,transparent 17px 22px);background-size:100% 22px;animation:codeScroll 3s linear infinite}
 @keyframes codeScroll{from{background-position:0 0}to{background-position:0 22px}}
 
-/* Designer: rotating color swatches */
+/* 디자인실: rotating color swatches */
 .desk[data-agent="designer"] .ds-screen::before{background:conic-gradient(from 0deg,#FF0033 0deg 60deg,#FBBF24 60deg 120deg,#22D3EE 120deg 180deg,#A78BFA 180deg 240deg,#34D399 240deg 300deg,#E1306C 300deg 360deg);filter:saturate(.85) brightness(.7);animation:colorSpin 8s linear infinite;border-radius:50%;margin:6px}
 @keyframes colorSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
@@ -13655,7 +13655,7 @@ body.floorplan .conf-room,body.floorplan .location{display:none!important}
   rgba(255,0,51,.6) 84% 92%,transparent 92% 100%);background-size:100% 100%;animation:audioBars .6s ease-in-out infinite alternate;mask-image:linear-gradient(0deg,#000 0%,#000 100%)}
 @keyframes audioBars{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(20deg) brightness(1.2)}}
 
-/* Instagram: pink heart pulse + grid */
+/* 기록채널: pink heart pulse + grid */
 .desk[data-agent="instagram"] .ds-screen::before{background:radial-gradient(circle at 50% 55%,rgba(225,48,108,.85) 0%,rgba(225,48,108,.5) 20%,transparent 35%),repeating-linear-gradient(0deg,rgba(247,119,55,.15) 0 4px,transparent 4px 8px),repeating-linear-gradient(90deg,rgba(247,119,55,.15) 0 4px,transparent 4px 8px);animation:igPulse 1.6s ease-in-out infinite}
 @keyframes igPulse{0%,100%{transform:scale(.95);opacity:.7}50%{transform:scale(1.05);opacity:1}}
 
@@ -13752,7 +13752,7 @@ body.floorplan .conf-room,body.floorplan .location{display:none!important}
   box-shadow:0 0 18px rgba(0,255,65,.18),inset 0 0 0 1px rgba(255,255,255,.04);
   overflow:hidden;
 }
-/* When a custom portrait is loaded (영숙/레오), drop the gradient and let
+/* When a custom portrait is loaded (비서실장/시황영상관), drop the gradient and let
    the image cover the avatar tile completely. Adds a subtle inner ring so
    the photo blends with the brand's amber border. */
 .amd-emoji.has-photo{background:transparent;padding:0}
@@ -14184,7 +14184,7 @@ body.dispatching .beams{opacity:1}
   <!-- Action zone — primary CTA prominent, secondary toggles ghost. -->
   <div class="actions">
     <button class="topbtn" id="workdayBtn" title="24시간 자동 운영 — 설정 로딩 중...">24h ⋯</button>
-    <button class="topbtn primary" id="dashboardBtn" title="👥 직원 에이전트 보기 — 팀 전체 한눈에">👥 직원 에이전트 보기</button>
+    <button class="topbtn primary" id="dashboardBtn" title="👥 직원 현황 — 팀 전체 한눈에">👥 직원 현황</button>
     <button class="topbtn ghost" id="apiBtn" title="🔌 외부 연결 — Telegram · YouTube · Google Calendar 등 API 키 한 곳에서">🔌</button>
     <button class="topbtn ghost" id="toggleSideBtn" title="활동 로그 패널 토글">📋</button>
     <button class="topbtn ghost" id="folderBtn" title="회사 폴더 열기">📁</button>
@@ -14208,7 +14208,7 @@ body.dispatching .beams{opacity:1}
     <div class="fr-icon">💰</div>
     <div class="fr-title">
       <div class="fr-eyebrow">PERFORMANCE · <span class="fr-live"><span class="fr-pulse"></span>LIVE</span></div>
-      <div class="fr-name">수익률 관리 센터</div>
+      <div class="fr-name">수익률 관제센터</div>
     </div>
     <button class="fr-close" id="frClose" title="숨기기">✕</button>
   </div>
@@ -14232,15 +14232,15 @@ body.dispatching .beams{opacity:1}
   </div>
   <div class="fr-actions">
     <button class="fr-btn primary" id="frOpenDashboard">
-      📊 수익률 대시보드
+      📊 수익률 관제센터
       <span class="fr-btn-arrow">→</span>
     </button>
-    <button class="fr-btn ghost" id="frAskHyunbin" title="현빈 에이전트 수익률 분석">🧠 수익률 분석</button>
+    <button class="fr-btn ghost" id="frAskHyunbin" title="성과관리관 에이전트 성과 분석">🧠 성과 분석</button>
   </div>
 </div>
 
 <!-- 숨김 상태에서 다시 열 수 있는 작은 핍 (floating 닫혔을 때만 보임) -->
-<button class="fr-reopen" id="frReopen" title="수익률 관리 센터 열기">H</button>
+<button class="fr-reopen" id="frReopen" title="수익률 관제센터 열기">H</button>
 
 <div class="office-wrap">
   <div class="office-floor" id="floor">
@@ -14262,7 +14262,7 @@ body.dispatching .beams{opacity:1}
     <!-- Floating particles for ambient feel -->
     <div class="particles" id="particles"></div>
 
-    <!-- Conference area (CEO + whiteboard at top of studio, where wall monitors are) -->
+    <!-- Conference area (총괄실장 + whiteboard at top of studio, where wall monitors are) -->
     <div class="conf-room">
       <div class="conf-label">CONFERENCE</div>
       <div class="whiteboard" id="whiteboard">대기 중 — 명령을 내리면 팀이 움직입니다</div>
@@ -14413,7 +14413,7 @@ function makeAgent(a){
   if (a.sprite) {
     character.style.backgroundImage = 'url(' + a.sprite + ')';
   } else {
-    /* Fallback to CEO sprite if missing */
+    /* Fallback to 총괄실장 sprite if missing */
     character.style.background = 'rgba(255,255,255,0.1)';
   }
   
@@ -14426,7 +14426,7 @@ function makeAgent(a){
   const nm = document.createElement('div'); nm.className = 'ag-plate'; nm.textContent = a.emoji + ' ' + a.name; d.appendChild(nm);
   d.title = a.role + ' — ' + a.specialty;
   d.addEventListener('click', () => {
-    /* CEO opens its folder; everyone else opens the unified agent card —
+    /* 총괄실장 opens its folder; everyone else opens the unified agent card —
        same modal the agent board uses, so floor plan + board stay in sync. */
     if (a.id === 'ceo') {
       vscode.postMessage({type:'openCompanyFolder',sub:'_agents/ceo'});
@@ -14611,7 +14611,7 @@ const PERSONALITY = {
     likedLocs: ['meeting','copier','cafeCounter']
   },
   secretary: {
-    thoughts: ['일정 정리하자', '메일 답장 보내야', 'CEO 미팅 30분 후', '다들 할 일 알지?', '회의록 다시 보자'],
+    thoughts: ['일정 정리하자', '메일 답장 보내야', '총괄실장 미팅 30분 후', '다들 할 일 알지?', '회의록 다시 보자'],
     status: ['📋','📞','📅','📝','✉️'],
     likedLocs: ['copier','meeting','cafeTable']
   }
@@ -14761,8 +14761,8 @@ function spawnArrivalBurst(agentId) {
   }
 }
 
-/* v2.89.148 — CEO ↔ specialist dispatch 광선 효과. 책상 두 개 사이 SVG line +
-   따라 흐르는 점. 시각적으로 "CEO가 task 보냈다 → specialist 받음" 표현.
+/* v2.89.148 — 총괄실장 ↔ specialist dispatch 광선 효과. 책상 두 개 사이 SVG line +
+   따라 흐르는 점. 시각적으로 "총괄실장가 task 보냈다 → specialist 받음" 표현.
    v2.89.150: 광선 색 cyan→violet 그라데이션 + 황금 점 꼬리 추가 + 도착 파티클. */
 function spawnDispatchBeam(fromId, toId) {
   const fromEl = deskEls[fromId], toEl = deskEls[toId];
@@ -15665,8 +15665,8 @@ window.addEventListener('message', e => {
         const a = agentMap[m.agent];
         if (a) logActivity(a.emoji, m.agent, a.name+' 작업 시작');
       } else {
-        const txt = m.task || 'CEO 작업';
-        logActivity('🧭','ceo','<strong>CEO</strong> '+escapeHtml(txt));
+        const txt = m.task || '총괄실장 작업';
+        logActivity('🧭','ceo','<strong>총괄실장</strong> '+escapeHtml(txt));
       }
       break;
     }
@@ -15677,8 +15677,8 @@ window.addEventListener('message', e => {
     case 'multiDispatch': {
       /* v2.89.150 — 디자인 폭발 시네마틱:
          (0) 화면 가운데 "📋 DISPATCH" 거대 배너 (글리치)
-         (1) CEO 책상 폭발적 펄스 + 화이트보드 활성화
-         (2) specialist walk → CEO 회의실
+         (1) 총괄실장 책상 폭발적 펄스 + 화이트보드 활성화
+         (2) specialist walk → 총괄실장 회의실
          (3) cyan + violet 광선 + 꼬리 황금 점
          (4) 도착 파티클 폭발
          (5) chatter
@@ -15689,7 +15689,7 @@ window.addEventListener('message', e => {
         const ids = tasks.map(t => t.agent);
         /* 0. 화면 중앙 글리치 배너 */
         try { spawnDispatchBanner(String(m.brief || '작업 분배')); } catch {}
-        /* 1. CEO 펄스 + 화이트보드 */
+        /* 1. 총괄실장 펄스 + 화이트보드 */
         try { setDeskState('ceo', 'thinking'); } catch {}
         try { showStatusIcon('ceo', '📋', 4500); } catch {}
         try { showThought('ceo', String(m.brief || '작업 분배 중...').slice(0, 50), 6000); } catch {}
@@ -15701,7 +15701,7 @@ window.addEventListener('message', e => {
           }
         } catch {}
         try { document.body.classList.add('dispatching'); } catch {}
-        /* 2. 캐릭터들이 CEO 책상 주변으로 walk */
+        /* 2. 캐릭터들이 총괄실장 책상 주변으로 walk */
         const ceoP = (typeof HOME_POS !== 'undefined' && HOME_POS.ceo) ? HOME_POS.ceo : { x: 50, y: 50 };
         ids.forEach((id, i) => {
           setTimeout(() => {
@@ -15722,7 +15722,7 @@ window.addEventListener('message', e => {
             } catch {}
             try {
               if (typeof logActivity === 'function') {
-                logActivity('🎯', t.agent, (t.emoji || '🤖') + ' ' + t.name + ' ← CEO task: ' + (t.task || '').slice(0, 60));
+                logActivity('🎯', t.agent, (t.emoji || '🤖') + ' ' + t.name + ' ← 총괄실장 task: ' + (t.task || '').slice(0, 60));
               }
             } catch {}
           }, 1400 + i * 350);
@@ -15758,7 +15758,7 @@ window.addEventListener('message', e => {
               } catch {}
             }, i * 150);
           });
-          /* CEO 도 'working' 으로 (종합 보고서 작성 중) */
+          /* 총괄실장 도 'working' 으로 (종합 보고서 작성 중) */
           setTimeout(() => {
             try { setDeskState('ceo', 'working'); } catch {}
             try { showThought('ceo', '📝 종합 보고서 작성', 6000); } catch {}
@@ -15846,7 +15846,7 @@ window.addEventListener('message', e => {
       whiteboard.classList.add('active');
       whiteboard.innerHTML = '<span class="wb-line">📝 '+escapeHtml((m.brief||'').slice(0,80))+'</span>';
       const block = document.createElement('div'); block.className = 'report-block';
-      block.innerHTML = '<div class="rb-head">📝 CEO 종합 보고서</div>'+escapeHtml(m.report||'');
+      block.innerHTML = '<div class="rb-head">📝 총괄실장 종합 보고서</div>'+escapeHtml(m.report||'');
       outPane.appendChild(block);
       outPane.scrollTop = outPane.scrollHeight;
       logActivity('📝','ceo','<strong>종합 보고서 발표</strong> · '+escapeHtml(m.sessionPath||''));
@@ -15887,7 +15887,7 @@ window.addEventListener('message', e => {
         break;
       }
       /* Swap the avatar emoji square for a real photo when one is provided
-         (영숙/레오). The .has-photo class kills the gradient background and
+         (비서실장/시황영상관). The .has-photo class kills the gradient background and
          lets the image cover the avatar tile fully. */
       try {
         const emo = document.getElementById('amdEmoji');
@@ -16179,7 +16179,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
     }
 
     /* v2.89.45 — 에이전트 프로필 사진을 markdown으로 반환. 채팅창에 메시지 위에 prepend
-       해서 "진짜 사람이 말하는 느낌" 연출. profileImage가 정의된 에이전트(레오/영숙)만
+       해서 "진짜 사람이 말하는 느낌" 연출. profileImage가 정의된 에이전트(시황영상관/비서실장)만
        사진 나오고, 나머지는 빈 문자열 → 그냥 emoji + 이름. */
     private _agentAvatarMd(agentId: string): string {
         const a = AGENTS[agentId];
@@ -16194,7 +16194,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
     /* v2.89.47 — 마크다운 이미지 버전. webview markdown sanitizer가 inline <img> HTML
        문자 그대로 표시하던 문제 해결. ![alt](url) 형식은 표준 마크다운이라 항상 렌더됨.
-       헤딩 라인 뒤에 같이 붙여서 ## ![](url) 📺 레오 형태로 한 줄 헤더 만듦. */
+       헤딩 라인 뒤에 같이 붙여서 ## ![](url) 📺 시황영상관 형태로 한 줄 헤더 만듦. */
     private _agentAvatarUriMd(agentId: string): string {
         const a = AGENTS[agentId];
         if (!a?.profileImage || !this._view) return '';
@@ -16222,7 +16222,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
     public _markActivity() { this._lastUserActivityTs = Date.now(); }
 
     /** Fire a "morning briefing" the first time the IDE is opened on a new day,
-     *  IF the company is configured. CEO reads goals + recent progress and
+     *  IF the company is configured. 총괄실장 reads goals + recent progress and
      *  proposes the day's top 3 priorities — sets the tone of an autonomous co. */
     public async maybeMorningBriefing(ctx: vscode.ExtensionContext) {
         try {
@@ -16248,10 +16248,10 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
     }
 
     /** Start the auto-cycle scheduler. Every interval, if idle > threshold and
-     *  the company is configured, CEO autonomously dispatches one priority task. */
+     *  the company is configured, 총괄실장 autonomously dispatches one priority task. */
     /** 24시간 자율 업무 — 사용자가 자리에 있든 없든, 1인 기업 모드(👔)가
      *  사이드바에 켜져 있든 꺼져 있든, autoCycleEnabled가 true면 정해진
-     *  간격마다 CEO가 알아서 일을 분배합니다. 이게 "24시간 ON"의 진짜 의미.
+     *  간격마다 총괄실장가 알아서 일을 분배합니다. 이게 "24시간 ON"의 진짜 의미.
      *  안전장치는 두 가지: (1) 동일 사이클 중복 실행 방지, (2) 사용자가 직접
      *  대화 중일 때(_abortController 활성)는 그 호출이 끝날 때까지 대기. */
     /* v2.89 — Dispatch queue. 자율 사이클과 사용자 명령이 동시에 들어와서
@@ -17255,7 +17255,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'prompt': {
-                    /* v2.89.146 — 명시적 호출 감지("현빈아", "코다리야" 등) 시 corporate
+                    /* v2.89.146 — 명시적 호출 감지("성과관리관아", "코다리야" 등) 시 corporate
                        모드 force. 사용자가 사이드바 toggle 안 해도 명시적 호출은 항상
                        specialist dispatch 흐름으로 → 매출/키트 shortcut 발동. */
                     const txt = String(msg.value || '');
@@ -17368,7 +17368,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                 }
                 case 'runTool': {
                     // Ask the YouTube agent to run this specific tool now via the
-                    // CEO dispatch path. The agent has the tool catalog in its
+                    // 총괄실장 dispatch path. The agent has the tool catalog in its
                     // context and can output <run_command> to execute it.
                     // Lifecycle messages (toolRunCompleted) let the panel show
                     // a per-tool game-like state machine: pending → running → done/error.
@@ -17557,7 +17557,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                 }
                 case 'runAgentStep': {
                     // Manual single-step kick from the agent panel. Goes through
-                    // the existing CEO dispatch path so artifacts land in the
+                    // the existing 총괄실장 dispatch path so artifacts land in the
                     // same sessions/ folder and the cinematic UI fires.
                     // We TEMPORARILY enable sidebar broadcast for this run so
                     // the user sees their explicit action play out, then
@@ -19497,13 +19497,13 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
     }
 
     /* v2.89.37 — 3단계 fallback. 사용자가 "내 유튜브 채널 분석" 같은 명백한 단일 도구
-       요청을 했을 때, LLM 분류기만 의존하면 작은 모델이 `{}` 뱉어서 CEO 플래너로 폴백
-       → CEO가 4명 동원해서 Designer가 무관한 시각 시스템 보고서 출력. 사용자 박살.
+       요청을 했을 때, LLM 분류기만 의존하면 작은 모델이 `{}` 뱉어서 총괄실장 플래너로 폴백
+       → 총괄실장가 4명 동원해서 디자인실가 무관한 시각 시스템 보고서 출력. 사용자 박살.
 
        이제 흐름:
          1) 패턴 매칭 (deterministic, 절대 실패 X) — 명백한 키워드면 즉시 도구 실행
          2) LLM 분류기 — 변형된 표현 ("subscriber 어때?", "내 유튜브 어떻게 됐냐") 캐치
-         3) CEO 플래너 — 진짜 다중 에이전트 작업 ("영상 기획해줘", "썸네일 만들어")
+         3) 총괄실장 플래너 — 진짜 다중 에이전트 작업 ("영상 기획해줘", "썸네일 만들어")
 
        1·2 단계가 도구를 찾으면 그 도구만 실행하고 multi-agent 분배 전부 스킵. */
     private async _tryDataShortcut(prompt: string, sessionDir: string): Promise<boolean> {
@@ -19512,7 +19512,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
         /* v2.89.156 — 다중 도메인 종합 명령은 multi-agent 로 보냄.
            "유튜브 + 매출 + 종합 보고서" 같이 두 영역 동시 요청이면 단일 도구 shortcut 이
-           무시하고 multi-agent dispatch (현빈 + 레오 둘 다) 가 잡도록 여기서 바로 false. */
+           무시하고 multi-agent dispatch (성과관리관 + 시황영상관 둘 다) 가 잡도록 여기서 바로 false. */
         const lpEarly = p.toLowerCase();
         const hasYoutube = /유튜브|youtube|채널|구독|조회/.test(lpEarly);
         const hasRevenue = /매출|페이팔|paypal|수익|결제|매상/.test(lpEarly);
@@ -19545,11 +19545,11 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
         /* === 1단계: 도메인 키워드 + 비창작 의도 매칭 (v2.89.48) ===
            이전엔 빡빡한 정규식이라 "유튜브붆석해" 같은 오타나 "유튜브 어때" 같은 변형을
-           못 잡고 CEO 플래너로 떨어뜨림. 새 접근:
+           못 잡고 총괄실장 플래너로 떨어뜨림. 새 접근:
            - 도메인 키워드 (유튜브/채널/구독자/조회수 등) 등장 = YouTube 도구 후보
            - 사용자가 명백한 창작 동사 (만들/기획/디자인/스크립트 써)를 안 쓰면 = 분석 의도
            - 즉, 키워드 + 비창작 → my_videos_check.py 즉시 실행
-           오타·변형·축약 다 흡수. 창작 명령은 CEO 플래너로 정상 라우팅. */
+           오타·변형·축약 다 흡수. 창작 명령은 총괄실장 플래너로 정상 라우팅. */
         type DomainShortcut = {
             agentId: string;
             tool: string;
@@ -19562,7 +19562,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                 domainPattern: /(?:유튜브|youtube|채널|구독자|조회수|시청자|시청\s*시간|내\s*영상|내\s*비디오|video\s*count|subscriber)/i,
             },
         ];
-        /* 창작·기획 동사 — 이게 있으면 분석이 아니라 multi-agent 작업 (CEO 플래너로) */
+        /* 창작·기획 동사 — 이게 있으면 분석이 아니라 multi-agent 작업 (총괄실장 플래너로) */
         const creativePattern = /(?:만들|기획|디자인|썸네일\s*제작|썸네일\s*만들|스크립트\s*써|글\s*써|작성해|코딩|개발|제작|design|create|build|make|write|generate|plan)/i;
         const isCreative = creativePattern.test(p);
         const lower = p.toLowerCase();
@@ -19577,7 +19577,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
         /* === 2단계: LLM 분류기 ===
            패턴이 못 잡은 변형 표현을 LLM이 의미로 해석. 짧은 프롬프트라 작은 모델도
-           대체로 잘 따름. 실패 시 그냥 false → CEO 플래너로. */
+           대체로 잘 따름. 실패 시 그냥 false → 총괄실장 플래너로. */
         const classifierPrompt = `당신은 사용자 명령에 가장 잘 맞는 도구를 1개 고르는 분류기입니다.
 
 [사용 가능한 도구]
@@ -19601,7 +19601,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 false,
             );
         } catch {
-            return false; /* LLM 실패 → CEO 플래너 */
+            return false; /* LLM 실패 → 총괄실장 플래너 */
         }
 
         let parsed: { agent?: string; tool?: string } | null = null;
@@ -19617,7 +19617,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         return await this._runShortcutTool(llmEntry, prompt, sessionDir, '분류기');
     }
 
-    /* 도구 1개를 직접 실행하고 결과를 채팅창에 출력. multi-agent 분배·CEO 보고서 다 스킵.
+    /* 도구 1개를 직접 실행하고 결과를 채팅창에 출력. multi-agent 분배·총괄실장 보고서 다 스킵.
        source 인자는 어떤 단계에서 매칭됐는지 사용자에게 보여주기 위함 ('패턴' or '분류기'). */
     private async _runShortcutTool(
         entry: { agentId: string; tool: string; scriptPath: string },
@@ -19706,22 +19706,22 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         post({ type: 'agentEnd', agent: entry.agentId });
 
         /* v2.89.47 — 빈 답 감지. 작은 모델·메모리 부족 시 LLM이 빈 string 반환하는데
-           이전엔 그대로 CEO한테 넘겨서 "분석 결과를 제공해주시면..." 헛소리 출력. */
+           이전엔 그대로 총괄실장한테 넘겨서 "분석 결과를 제공해주시면..." 헛소리 출력. */
         const specialistContent = (specialistAnalysis || '').trim();
         const specialistOk = specialistContent.length > 50 && !/^⚠️/.test(specialistContent);
 
-        /* === 3단계: CEO 종합 요약 ===
-           Specialist 분석이 의미 있을 때만 CEO 호출. 빈 답이면 CEO 스킵 → 명시적 실패 보고. */
+        /* === 3단계: 총괄실장 종합 요약 ===
+           Specialist 분석이 의미 있을 때만 총괄실장 호출. 빈 답이면 총괄실장 스킵 → 명시적 실패 보고. */
         let ceoSummary = '';
         if (specialistOk) {
             post({ type: 'agentStart', agent: 'ceo', task: '종합 요약' });
-            post({ type: 'response', value: `👔 CEO: 사장님께 올릴 종합 정리 중...` });
+            post({ type: 'response', value: `👔 총괄실장: 사장님께 올릴 종합 정리 중...` });
             const ceoModel = getAgentModel('ceo', '') || defaultModel || '';
-            const ceoSysPrompt = `${_personalizePrompt(CEO_REPORT_PROMPT)}\n${readAgentSharedContext('ceo', { lean: true })}`;
+            const ceoSysPrompt = `${_personalizePrompt(총괄실장_REPORT_PROMPT)}\n${readAgentSharedContext('ceo', { lean: true })}`;
             const ceoUserMsg = `[사장님 명령]\n${prompt}\n\n[${a.emoji} ${a.name} 전문가 분석]\n${specialistContent.slice(0, 6000)}\n\n위 ${a.name}의 분석을 사장님이 30초에 파악할 수 있게 종합 요약하세요. ${a.name}의 결론과 액션을 충실히 반영하되, 너무 길지 않게.\n\n⚠️ "분석 결과를 제공해주시면", "데이터가 들어오면" 같은 placeholder 절대 금지 — 위 분석은 이미 제공됐음.`;
             try {
                 ceoSummary = await this._callAgentLLM(ceoSysPrompt, ceoUserMsg, ceoModel, 'ceo', false);
-                /* CEO도 placeholder 뱉으면 무시 → specialist 분석만 보임 */
+                /* 총괄실장도 placeholder 뱉으면 무시 → specialist 분석만 보임 */
                 if (/분석\s*결과를\s*제공|데이터가\s*제공|데이터가\s*들어오면|once\s+the\s+output|when\s+the\s+output/i.test(ceoSummary)) {
                     ceoSummary = '';
                 }
@@ -19739,7 +19739,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
            제거하고 이모지·이름만으로 헤더. 데이터 분석은 stdout 그대로 (이미 markdown 정렬). */
         const sections: string[] = [];
         if (ceoSummary && ceoSummary.trim()) {
-            sections.push(`## 👔 CEO 종합\n\n${ceoSummary.trim()}`);
+            sections.push(`## 👔 총괄실장 종합\n\n${ceoSummary.trim()}`);
         }
         /* 스크립트 분석은 자체적으로 # 🎬 헤딩으로 시작하므로 추가 헤딩 없이 그대로 삽입 */
         sections.push(toolOut.slice(0, 12000).trim());
@@ -19756,7 +19756,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         appendConversationLog({
             speaker: a.name, emoji: a.emoji,
             section: `전문가 분석 chain (${source})`,
-            body: `Tool: ${entry.tool}\n\n${a.name} 분석:\n${specialistAnalysis.slice(0, 1500)}\n\nCEO 요약:\n${ceoSummary.slice(0, 800)}`,
+            body: `Tool: ${entry.tool}\n\n${a.name} 분석:\n${specialistAnalysis.slice(0, 1500)}\n\n사장님 브리핑:\n${ceoSummary.slice(0, 800)}`,
         });
         try {
             fs.writeFileSync(path.join(sessionDir, '_shortcut.md'), `# ${entry.tool} (${source}, 전문가 분석 chain)\n\n명령: ${prompt}\n\n${body}\n`);
@@ -19767,7 +19767,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
     // --------------------------------------------------------
     // 1인 기업 모드 — Multi-Agent Orchestration
     // --------------------------------------------------------
-    // CEO 에이전트가 사용자 한 줄 명령을 받아 작업을 분해하고,
+    // 총괄실장 에이전트가 사용자 한 줄 명령을 받아 작업을 분해하고,
     // 전문 에이전트들에게 순차로 일을 분배합니다. 각 에이전트는
     // 공동 목표·정체성·자기 메모리를 매번 읽고 작업합니다.
     // --------------------------------------------------------
@@ -19793,7 +19793,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 
             // Bridge mode 'full' — Secretary is the single front door. Triage
             // the message: either Secretary handles it directly (greeting,
-            // schedule lookup) or escalates to CEO. This puts sidebar in the
+            // schedule lookup) or escalates to 총괄실장. This puts sidebar in the
             // same shape as Telegram so all user input flows through one
             // consistent entry. Educational toggle — see readSecretaryBridgeMode.
             const bridgeMode = readSecretaryBridgeMode();
@@ -19810,9 +19810,9 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     );
                 } catch (e: any) {
                     /* Bridge fail-open — if Secretary triage errors we fall
-                       through to the normal CEO planner so the user isn't
+                       through to the normal 총괄실장 planner so the user isn't
                        blocked. Log the error in conversation log for visibility. */
-                    appendConversationLog({ speaker: '비서', emoji: '⚠️', body: `브릿지 분류 실패 → CEO로 직행: ${e?.message || e}` });
+                    appendConversationLog({ speaker: '비서', emoji: '⚠️', body: `브릿지 분류 실패 → 총괄실장로 직행: ${e?.message || e}` });
                 }
                 post({ type: 'agentEnd', agent: 'secretary' });
                 let triage: { mode?: string; text?: string } | null = null;
@@ -19830,22 +19830,22 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     return;
                 }
                 /* triage.mode === 'dispatch' or parse failure → continue to
-                   CEO planner. Optional ack so user knows Secretary saw it. */
-                appendConversationLog({ speaker: '비서', emoji: '📱', section: '브릿지(CEO에게 위임)', body: '작업이라 CEO에게 분배 요청' });
+                   총괄실장 planner. Optional ack so user knows Secretary saw it. */
+                appendConversationLog({ speaker: '비서', emoji: '📱', section: '브릿지(총괄실장에게 위임)', body: '작업이라 총괄실장에게 분배 요청' });
             }
 
             // Casual-chat fast path — short greetings like "안녕" must NOT enter
             // the JSON planner. Small models reply with a friendly greeting
             // (no JSON), parsing fails, user sees a confusing context-length
             // error even after they've already widened the context. Detect
-            // and route casual turns to a plain conversational CEO reply.
+            // and route casual turns to a plain conversational 총괄실장 reply.
             // Skipped in bridge='full' since Secretary already triaged above.
             if (bridgeMode !== 'full' && _isCasualChat(prompt)) {
                 post({ type: 'agentStart', agent: 'ceo', task: '인사' });
                 let chatReply = '';
                 try {
                     chatReply = await this._callAgentLLM(
-                        `${_personalizePrompt(CEO_CHAT_PROMPT)}\n${readAgentSharedContext('ceo')}${readRecentConversations(800)}`,
+                        `${_personalizePrompt(총괄실장_CHAT_PROMPT)}\n${readAgentSharedContext('ceo')}${readRecentConversations(800)}`,
                         prompt,
                         modelName,
                         'ceo',
@@ -19853,7 +19853,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     );
                 } catch (e: any) {
                     post({ type: 'agentEnd', agent: 'ceo' });
-                    post({ type: 'error', value: `⚠️ CEO 응답 실패: ${e?.message || e}` });
+                    post({ type: 'error', value: `⚠️ 총괄실장 응답 실패: ${e?.message || e}` });
                     return;
                 }
                 post({ type: 'agentEnd', agent: 'ceo' });
@@ -19880,14 +19880,14 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     console.error('[Hermes_AIOS] casual-chat 파일 액션 실패:', actErr?.message || actErr);
                 }
                 this._displayMessages.push({ text: this._stripActionTags(text), role: 'ai' });
-                appendConversationLog({ speaker: 'CEO', emoji: '👔', body: text });
+                appendConversationLog({ speaker: '총괄실장', emoji: '👔', body: text });
                 try { await this._maybeMirrorToTelegram(); } catch { /* ignore */ }
                 return;
             }
 
             /* v2.89.40 — 단축회로. 도구 1개로 답이 나오는 명령(예: "내 유튜브 채널 분석")은
                여기서 도구 직접 실행하고 종료. 매칭 실패 시 일반 multi-agent 흐름으로 떨어짐 —
-               CEO 플래너 프롬프트의 "단일 에이전트 우선" 규칙 + 환각 가드 + 스트림 타임아웃이
+               총괄실장 플래너 프롬프트의 "단일 에이전트 우선" 규칙 + 환각 가드 + 스트림 타임아웃이
                헛소리·hang을 막음. v2.89.38의 "info면 무조건 차단" 로직은 너무 과했어서 제거. */
             const shortcut = await this._tryDataShortcut(prompt, sessionDir);
             if (shortcut) {
@@ -19895,18 +19895,18 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 return;
             }
 
-            // 1) CEO에게 작업 분해 요청 (silent — UI에는 카드 펄스만)
-            // Phase 2: inject recent conversation history into CEO context so
+            // 1) 총괄실장에게 작업 분해 요청 (silent — UI에는 카드 펄스만)
+            // Phase 2: inject recent conversation history into 총괄실장 context so
             // planning is aware of what the company has been doing.
             /* v2.89.132 — 명시적 호출 감지. "코다리야 …" 처럼 사용자가 직접 이름 부르면
-               CEO LLM 호출 건너뛰고 그 에이전트만 단독 dispatch. 30초 vs 11분 차이. */
+               총괄실장 LLM 호출 건너뛰고 그 에이전트만 단독 dispatch. 30초 vs 11분 차이. */
             const explicit = this._detectExplicitMention(prompt);
             if (explicit) {
-                post({ type: 'agentStart', agent: 'ceo', task: `${explicit.agentName} 직접 호출 — CEO 우회` });
+                post({ type: 'agentStart', agent: 'ceo', task: `${explicit.agentName} 직접 호출 — 총괄실장 우회` });
                 _updateActiveDispatchStep(prompt, `${explicit.agentName} 직접 호출`);
             } else {
                 post({ type: 'agentStart', agent: 'ceo', task: '작업 분해' });
-                _updateActiveDispatchStep(prompt, 'CEO 계획 수립 중');
+                _updateActiveDispatchStep(prompt, '총괄실장 계획 수립 중');
             }
             let planRaw = '';
             /* v2.89.96 — 단계별 system prompt 빌드 + 각 단계 가드. 어느 단계가
@@ -19915,11 +19915,11 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             let ceoStage = 'init';
             try {
                 ceoStage = '_personalizePrompt';
-                let base = _personalizePrompt(CEO_PLANNER_PROMPT);
-                /* v2.89.103+107 — 채용·활성 게이트. 다음 에이전트는 CEO 팀 명단에서 제외:
+                let base = _personalizePrompt(총괄실장_PLANNER_PROMPT);
+                /* v2.89.103+107 — 채용·활성 게이트. 다음 에이전트는 총괄실장 팀 명단에서 제외:
                    - LOCKED 미채용 (Luna PIN 안 풀림)
                    - OPTIONAL 비활성 (사용자가 토글 OFF)
-                   각각 다른 안내 문구로 CEO에게 알림. */
+                   각각 다른 안내 문구로 총괄실장에게 알림. */
                 try {
                     const unavailableIds: string[] = [];
                     const reasons: Record<string, string> = {};
@@ -19945,7 +19945,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 let shared = '';
                 try { shared = readAgentSharedContext('ceo'); }
                 catch (sc: any) {
-                    /* 두뇌 RAG 등이 폭주해도 CEO 호출은 계속 — 컨텍스트 일부 누락한 채 진행. */
+                    /* 두뇌 RAG 등이 폭주해도 총괄실장 호출은 계속 — 컨텍스트 일부 누락한 채 진행. */
                     console.error('[Hermes_AIOS] readAgentSharedContext 실패, 빈 컨텍스트로 계속:', sc?.message || sc);
                     shared = '';
                 }
@@ -19965,7 +19965,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             } catch (buildErr: any) {
                 post({ type: 'agentEnd', agent: 'ceo' });
                 const stk = buildErr?.stack ? String(buildErr.stack).split('\n').slice(0, 3).join(' | ').slice(0, 300) : '';
-                post({ type: 'error', value: `⚠️ CEO 시스템 프롬프트 빌드 실패 (${ceoStage}): ${buildErr?.message || buildErr}\n[stack] ${stk}` });
+                post({ type: 'error', value: `⚠️ 총괄실장 시스템 프롬프트 빌드 실패 (${ceoStage}): ${buildErr?.message || buildErr}\n[stack] ${stk}` });
                 return;
             }
             try {
@@ -19976,7 +19976,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                         tasks: [{ agent: explicit.agentId, task: prompt }]
                     });
                 } else {
-                    /* v2.89.147 — 종합 보고서 패턴 감지 시 CEO LLM 우회.
+                    /* v2.89.147 — 종합 보고서 패턴 감지 시 총괄실장 LLM 우회.
                        "유튜브 + 매출" 같이 여러 데이터 영역 동시 요청 시 작은 LLM 이
                        "유튜브 1명만" 규칙에 빠져 한쪽 무시하던 버그 차단. */
                     const lp = prompt.toLowerCase();
@@ -20050,7 +20050,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 /* v2.89.95 — 디버그 보강. 'Maximum call stack' 같은 런타임 에러는
                    원인 추적을 위해 스택 첫 줄도 함께 노출 (사용자 신고 시 정확한 위치 확인). */
                 const stackTop = e?.stack ? String(e.stack).split('\n').slice(0, 3).join(' | ').slice(0, 300) : '';
-                post({ type: 'error', value: `⚠️ CEO 호출 실패: ${e.message}${detail ? '\n원인: ' + detail : ''}${stackTop ? '\n[stack] ' + stackTop : ''}${hint}` });
+                post({ type: 'error', value: `⚠️ 총괄실장 호출 실패: ${e.message}${detail ? '\n원인: ' + detail : ''}${stackTop ? '\n[stack] ' + stackTop : ''}${hint}` });
                 return;
             }
             post({ type: 'agentEnd', agent: 'ceo' });
@@ -20090,10 +20090,10 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 
             /* (d) 1회 자동 재시도 — 회사 컨텍스트 빼고 더 강한 JSON 지시로. */
             if (!plan) {
-                try { _activeChatProvider?.postSystemNote?.('CEO 첫 응답 파싱 실패 — JSON 모드로 1회 재시도', '🔄'); } catch { /* ignore */ }
+                try { _activeChatProvider?.postSystemNote?.('총괄실장 첫 응답 파싱 실패 — JSON 모드로 1회 재시도', '🔄'); } catch { /* ignore */ }
                 try {
                     const retryRaw = await this._callAgentLLM(
-                        `${_personalizePrompt(CEO_PLANNER_PROMPT)}\n\n[중요] 오직 JSON 한 객체만 출력. 설명/주석/마크다운 금지. 형식: {"brief":"…","tasks":[{"agent":"<id>","task":"…"}]}`,
+                        `${_personalizePrompt(총괄실장_PLANNER_PROMPT)}\n\n[중요] 오직 JSON 한 객체만 출력. 설명/주석/마크다운 금지. 형식: {"brief":"…","tasks":[{"agent":"<id>","task":"…"}]}`,
                         `[사용자 명령]\n${prompt}`,
                         modelName,
                         'ceo',
@@ -20135,7 +20135,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 }
                 post({
                     type: 'error',
-                    value: `⚠️ CEO가 작업 분배 계획(JSON)을 생성하지 못했어요.${hint}\n\n원본 응답:\n${planRaw.slice(0, 400)}`
+                    value: `⚠️ 총괄실장가 작업 분배 계획(JSON)을 생성하지 못했어요.${hint}\n\n원본 응답:\n${planRaw.slice(0, 400)}`
                 });
                 return;
             }
@@ -20175,7 +20175,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     return null;
                 })
                 .filter((t): t is { agent: string; task: string } => !!t);
-            /* v2.89.103+107 — 채용·활성 게이트 backend 보호. CEO가 프롬프트 무시하고
+            /* v2.89.103+107 — 채용·활성 게이트 backend 보호. 총괄실장가 프롬프트 무시하고
                비활성 에이전트(Luna 미채용 또는 OPTIONAL 비활성)에 task 배정해도 여기서 제거. */
             const droppedTasks: { agent: string; task: string; reason: string }[] = [];
             plan.tasks = plan.tasks.filter(t => {
@@ -20195,11 +20195,11 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             if (plan.tasks.length === 0) {
                 const wantedIds = originalTasks.map(t => `"${t.agent}"`).join(', ');
                 if (droppedTasks.length > 0) {
-                    post({ type: 'error', value: `⚠️ CEO가 비활성 에이전트만 호출했어요. 직원 패널에서 활성화 후 다시 시도해주세요.` });
+                    post({ type: 'error', value: `⚠️ 총괄실장가 비활성 에이전트만 호출했어요. 직원 패널에서 활성화 후 다시 시도해주세요.` });
                 } else {
                     post({
                         type: 'error',
-                        value: `⚠️ CEO가 호출한 에이전트(${wantedIds || '없음'})가 우리 팀에 없어요.\n사용 가능한 id: ${SPECIALIST_IDS.join(', ')}\n\nCEO 원본 응답 일부:\n${(planRaw || '').slice(0, 300)}`
+                        value: `⚠️ 총괄실장가 호출한 에이전트(${wantedIds || '없음'})가 우리 팀에 없어요.\n사용 가능한 id: ${SPECIALIST_IDS.join(', ')}\n\n총괄실장 원본 응답 일부:\n${(planRaw || '').slice(0, 300)}`
                     });
                 }
                 return;
@@ -20215,7 +20215,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 
             /* v2.89.148 — 가상 사무실 시각적 협업 동기화.
                dispatch 시점에 멀티 에이전트 dispatch 이벤트 broadcast →
-               office view 가 CEO → specialist 화살표 + 각 책상 task 말풍선 + 펄스. */
+               office view 가 총괄실장 → specialist 화살표 + 각 책상 task 말풍선 + 펄스. */
             try {
                 this._broadcastCorporate({
                     type: 'multiDispatch',
@@ -20237,16 +20237,16 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 userPrompt: prompt
             });
 
-            // Phase 1: log CEO's brief + assignment
+            // Phase 1: log 총괄실장's brief + assignment
             appendConversationLog({
-                speaker: 'CEO', emoji: '🧭', section: '작업 분배',
+                speaker: '총괄실장', emoji: '🧭', section: '작업 분배',
                 body: `${plan.brief}\n\n**할당:**\n${plan.tasks.map(t => `- ${AGENTS[t.agent]?.emoji || '🤖'} **${AGENTS[t.agent]?.name || t.agent}**: ${t.task}`).join('\n')}`,
             });
 
             // 4) 각 specialist 순차 호출
             const outputs: Record<string, string> = {};
             /* v2.89.51 — 작업 라운드 메타데이터 추적. 어떤 도구를 썼고, 어떤 데이터를
-               받았고, 핵심 산출이 뭔지를 CEO 보고에 포함시켜 사용자가 한눈에 파악. */
+               받았고, 핵심 산출이 뭔지를 총괄실장 보고에 포함시켜 사용자가 한눈에 파악. */
             const agentMeta: Record<string, {
                 task: string;
                 toolsUsed: string[];           // 실행한 Python 도구 목록
@@ -20303,7 +20303,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                    호출해 실패하던 사고 차단. */
                 const recentFilesCtx = this._buildRecentFilesContext(t.agent);
                 const sysPrompt = `${buildSpecialistPrompt(t.agent)}${this._getProjectMemory()}${buildAgentConfigStatus(t.agent)}${realtimeData}${readAgentSharedContext(t.agent, { lean: useLeanContext })}${peerCtx}${hallucinationGuard}${recentFilesCtx}`;
-                const userMsg = `[CEO의 지시]\n${t.task}\n\n[원 사용자 명령 참고]\n${prompt}`;
+                const userMsg = `[총괄실장의 지시]\n${t.task}\n\n[원 사용자 명령 참고]\n${prompt}`;
 
                 let out = '';
                 /* v2.89.133 — 키트 shortcut. 명시적 호출(`코다리야 ...`) + 두뇌 키트
@@ -20315,7 +20315,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     shortcut = this._tryKitShortcut(t.agent, prompt);
                 }
                 /* v2.89.147 — business 매출 shortcut. business 에이전트 + 매출/PayPal
-                   키워드면 explicit 여부 무관 LLM 우회. 종합 보고서에서 CEO 가 business 에
+                   키워드면 explicit 여부 무관 LLM 우회. 종합 보고서에서 총괄실장 가 business 에
                    분배한 경우도 동일하게 paypal_revenue.py 실데이터 직접 표시. 작은
                    LLM(gemma-2B) 이 system prompt 무시하고 README 읽으려는 버릇 차단. */
                 if (!shortcut && t.agent === 'business') {
@@ -20571,7 +20571,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 }
 
                 outputs[t.agent] = out;
-                /* v2.89.51 — 작업 라운드 메타데이터 수집. CEO 보고에 도구·데이터·핵심 인용. */
+                /* v2.89.51 — 작업 라운드 메타데이터 수집. 총괄실장 보고에 도구·데이터·핵심 인용. */
                 {
                     /* prefetch summary: realtimeData 첫 의미있는 줄 (### 헤딩 다음) */
                     let prefetchSummary = '';
@@ -20807,16 +20807,16 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 post({ type: 'error', value: '🛑 사용자가 중단했어요.' });
                 return;
             }
-            // 5) CEO 종합 보고서 (UI에는 chunk 안 흘리고 카드로만 표시)
-            // v2.89.41 — 단일 에이전트 dispatch면 CEO 보고서 스킵.
+            // 5) 총괄실장 종합 보고서 (UI에는 chunk 안 흘리고 카드로만 표시)
+            // v2.89.41 — 단일 에이전트 dispatch면 총괄실장 보고서 스킵.
             // v2.89.46 — 빈 산출물 감지: 모든 에이전트가 LLM 실패로 빈 답 반환했으면
-            //   CEO가 "기다리고 있습니다" 같은 placeholder 출력하지 않게 명시적 실패 보고.
+            //   총괄실장가 "기다리고 있습니다" 같은 placeholder 출력하지 않게 명시적 실패 보고.
             let finalReport = '';
             const nonEmptyOutputs = plan.tasks
                 .map(t => ({ agent: t.agent, out: (outputs[t.agent] || '').trim() }))
                 .filter(o => o.out.length > 30 && !/^⚠️.*호출 실패/.test(o.out));
             if (nonEmptyOutputs.length === 0) {
-                /* 모든 에이전트가 빈 답 — CEO LLM 호출 무의미. 즉시 실패 보고로 종료. */
+                /* 모든 에이전트가 빈 답 — 총괄실장 LLM 호출 무의미. 즉시 실패 보고로 종료. */
                 finalReport = `⚠️ **모든 에이전트의 LLM 호출이 실패했습니다.**\n\n` +
                     `시도된 에이전트: ${plan.tasks.map(t => `${AGENTS[t.agent]?.emoji} ${AGENTS[t.agent]?.name}`).join(' · ')}\n\n` +
                     `**가장 흔한 원인**:\n` +
@@ -20830,8 +20830,8 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 finalReport = onlyOutput.trim() || '_(에이전트 산출물 없음)_';
             } else {
                 post({ type: 'agentStart', agent: 'ceo', task: '종합 보고서 작성' });
-                _updateActiveDispatchStep(prompt, 'CEO 종합 보고서 작성 중');
-                /* v2.89.46 — 산출물 없는 에이전트는 reportInput에서 제외 (CEO가 placeholder
+                _updateActiveDispatchStep(prompt, '총괄실장 종합 보고서 작성 중');
+                /* v2.89.46 — 산출물 없는 에이전트는 reportInput에서 제외 (총괄실장가 placeholder
                    출력 위험 제거). 명시적으로 "X명 중 Y명만 답변 도착" 메타 정보 포함. */
                 const validTasks = plan.tasks.filter(t => nonEmptyOutputs.some(o => o.agent === t.agent));
                 const reportInput = `[원 명령]\n${prompt}\n\n[브리프]\n${plan.brief}\n\n` +
@@ -20841,19 +20841,19 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 let ceoNarrative = '';
                 try {
                     ceoNarrative = await this._callAgentLLM(
-                        `${_personalizePrompt(CEO_REPORT_PROMPT)}\n${readAgentSharedContext('ceo', { lean: true })}`,
+                        `${_personalizePrompt(총괄실장_REPORT_PROMPT)}\n${readAgentSharedContext('ceo', { lean: true })}`,
                         reportInput,
                         modelName,
                         'ceo',
                         false
                     );
-                    /* CEO가 그래도 placeholder 뱉으면 무시 */
+                    /* 총괄실장가 그래도 placeholder 뱉으면 무시 */
                     if (/산출물을\s*기다|데이터가\s*제공|once\s+the\s+output|when\s+the\s+output/i.test(ceoNarrative)) {
                         ceoNarrative = '';
                     }
                 } catch { ceoNarrative = ''; }
                 post({ type: 'agentEnd', agent: 'ceo' });
-                /* v2.89.51 — 메타데이터 기반 작업 라운드 보고. CEO LLM 답이 짧거나 빈 답이어도
+                /* v2.89.51 — 메타데이터 기반 작업 라운드 보고. 총괄실장 LLM 답이 짧거나 빈 답이어도
                    사용자가 "어떤 도구·어떤 데이터·각 에이전트 무엇을 했나" 한눈에 파악. */
                 const breakdownLines: string[] = [];
                 breakdownLines.push(`## 🗂 작업 라운드 — 누가 뭐 했나`);
@@ -20884,22 +20884,22 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                     breakdownLines.push('');
                 }
                 if (ceoNarrative && ceoNarrative.trim()) {
-                    finalReport = `${breakdownLines.join('\n')}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## 👔 CEO 종합\n\n${ceoNarrative.trim()}`;
+                    finalReport = `${breakdownLines.join('\n')}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## 👔 총괄실장 종합\n\n${ceoNarrative.trim()}`;
                 } else {
-                    /* CEO LLM 실패해도 메타 보고서는 항상 보임 */
-                    finalReport = `${breakdownLines.join('\n')}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n_(CEO 종합 단계 스킵 — 위 작업 라운드 메타가 답입니다)_`;
+                    /* 총괄실장 LLM 실패해도 메타 보고서는 항상 보임 */
+                    finalReport = `${breakdownLines.join('\n')}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n_(총괄실장 종합 단계 스킵 — 위 작업 라운드 메타가 답입니다)_`;
                 }
             }
 
             try {
-                fs.writeFileSync(path.join(sessionDir, '_report.md'), `# 📝 CEO 종합 보고서\n\n${finalReport}\n`);
+                fs.writeFileSync(path.join(sessionDir, '_report.md'), `# 📝 총괄실장 종합 보고서\n\n${finalReport}\n`);
             } catch { /* ignore */ }
             appendAgentMemory('ceo', `${prompt} → 보고서 sessions/${path.basename(sessionDir)}/_report.md`);
-            // Phase 1: log CEO's final synthesis into the running transcript
-            appendConversationLog({ speaker: 'CEO', emoji: '🧭', section: '종합 보고서', body: finalReport });
+            // Phase 1: log 총괄실장's final synthesis into the running transcript
+            appendConversationLog({ speaker: '총괄실장', emoji: '🧭', section: '종합 보고서', body: finalReport });
             /* Auto-mark any open tracker task that was created in the last
                few minutes (= the user's most recent dispatch) as done now
-               that the CEO has wrapped up. Lets the user see "✅ 다음 영상
+               that the 총괄실장 has wrapped up. Lets the user see "✅ 다음 영상
                컨셉 뽑기" without manual /done. */
             try { autoMarkTrackerFromDispatch(plan, sessionDir, finalReport); } catch { /* ignore */ }
             /* Refresh unified schedule so the next cycle's agents see the
@@ -20946,7 +20946,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             });
 
             // 6.4) Bridge mode 'output_only' or 'full' — Secretary writes a
-            // 1-2 line wrap-up addressed to the user. Replaces the raw CEO
+            // 1-2 line wrap-up addressed to the user. Replaces the raw 총괄실장
             // tone with a friendly, owner-facing summary so the bridge model
             // is felt at the end of every dispatch (not just at the start).
             // Reuses the same Telegram mirror flag so this card flows out
@@ -20954,7 +20954,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             if (bridgeMode !== 'off') {
                 try {
                     const wrapSys = `당신은 1인 기업의 비서입니다. 방금 회사가 사장님 명령을 처리해서 종합 보고서가 나왔습니다.\n사장님(사용자)께 1~2 문장으로 친근하게 정리해서 전달하세요.\n- "사장님, ~"으로 시작\n- 핵심 결과 1개 + 필요하면 다음 액션 한 줄\n- JSON·머리말·꼬리말 금지. 평문만.`;
-                    const wrapUsr = `[사장님 명령]\n${prompt.slice(0, 400)}\n\n[CEO 종합 보고]\n${finalReport.slice(0, 1500)}`;
+                    const wrapUsr = `[사장님 명령]\n${prompt.slice(0, 400)}\n\n[총괄실장 종합 보고]\n${finalReport.slice(0, 1500)}`;
                     const wrap = await this._callAgentLLM(wrapSys, wrapUsr, modelName, 'secretary', false);
                     const wrapText = (wrap || '').trim().slice(0, 500);
                     if (wrapText) {
@@ -21132,7 +21132,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
     }
 
     /* v2.89.38 — LLM 스트림 소비 + 유휴 타임아웃 + 안전 종료. 이전엔 stream.on('end')가
-       절대 발생 안 하면 (네트워크 hang, 모델 무한 루프) 영원히 기다림 → "Designer 데이터
+       절대 발생 안 하면 (네트워크 hang, 모델 무한 루프) 영원히 기다림 → "디자인실 데이터
        가져오는 중..." 영구 멈춤. 이제 60초간 데이터 한 청크도 안 오면 자동 reject. */
     private async _consumeLLMStream(
         stream: any,
@@ -21232,19 +21232,19 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
     }
 
     /** v2.89.132 — 명시적 에이전트 호출 감지. "코다리야 …"·"@developer …"·"개발자야 …"
-     *  처럼 사용자가 직접 이름 부른 경우 CEO 단계를 건너뛰고 그 에이전트에게만 dispatch.
-     *  사용자 의도 존중 + 단순 작업의 처리 시간 5배 단축 (CEO LLM 호출 1회 + 다른
-     *  specialist 4명 호출 제거). 자연어로만 명령한 경우는 None 반환 → 기존 CEO 분배. */
+     *  처럼 사용자가 직접 이름 부른 경우 총괄실장 단계를 건너뛰고 그 에이전트에게만 dispatch.
+     *  사용자 의도 존중 + 단순 작업의 처리 시간 5배 단축 (총괄실장 LLM 호출 1회 + 다른
+     *  specialist 4명 호출 제거). 자연어로만 명령한 경우는 None 반환 → 기존 총괄실장 분배. */
     private _detectExplicitMention(prompt: string): { agentId: string; agentName: string } | null {
         const lower = prompt.toLowerCase();
         /* 호출 후보: 한글 닉네임·영문 id·역할 키워드 → agentId 매핑.
            우선순위 높은 것부터 (코다리 같은 고유 닉네임이 일반어 "개발자"보다 강함). */
         const candidates: Array<{ patterns: RegExp[]; agentId: string; agentName: string }> = [
             { patterns: [/코다리[야아!,~ ]/, /코다리야/, /@developer\b/, /@코다리\b/], agentId: 'developer', agentName: '코다리' },
-            { patterns: [/현빈[아야!,~ ]/, /현빈아/, /@business\b/, /@현빈\b/], agentId: 'business', agentName: '현빈' },
+            { patterns: [/성과관리관[아야!,~ ]/, /성과관리관아/, /@business\b/, /@성과관리관\b/], agentId: 'business', agentName: '성과관리관' },
             { patterns: [/루나[야아!,~ ]/, /루나야/, /@editor\b/, /@루나\b/], agentId: 'editor', agentName: '루나' },
-            { patterns: [/레오[야아!,~ ]/, /레오야/, /@youtube\b/, /@레오\b/], agentId: 'youtube', agentName: '레오' },
-            { patterns: [/영숙[아야!,~ ]/, /영숙아/, /@secretary\b/, /@영숙\b/], agentId: 'secretary', agentName: '영숙' },
+            { patterns: [/시황영상관[야아!,~ ]/, /시황영상관야/, /@youtube\b/, /@시황영상관\b/], agentId: 'youtube', agentName: '시황영상관' },
+            { patterns: [/비서실장[아야!,~ ]/, /비서실장아/, /@secretary\b/, /@비서실장\b/], agentId: 'secretary', agentName: '비서실장' },
             /* 역할 호칭 — 단, 자연스러운 명령에서 잘못 매칭 안 되게 "야"·"!"·"," 같은 호격 표지 필요 */
             { patterns: [/개발자[야아!,]/, /@developer\b/], agentId: 'developer', agentName: '개발자' },
             { patterns: [/디자이너[야아!,]/, /@designer\b/], agentId: 'designer', agentName: '디자이너' },
@@ -21255,7 +21255,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         for (const c of candidates) {
             for (const p of c.patterns) {
                 if (p.test(prompt) || p.test(lower)) {
-                    /* 활성 상태인지 확인 — 비활성 에이전트면 CEO 분배로 fallback */
+                    /* 활성 상태인지 확인 — 비활성 에이전트면 총괄실장 분배로 fallback */
                     if (isAgentActive(c.agentId)) {
                         return { agentId: c.agentId, agentName: c.agentName };
                     }
@@ -21265,7 +21265,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         return null;
     }
 
-    /** v2.89.145 — 매출 shortcut. 명시적 현빈 호출 + 매출 키워드면 LLM 우회하고
+    /** v2.89.145 — 매출 shortcut. 명시적 성과관리관 호출 + 매출 키워드면 LLM 우회하고
      *  paypal_revenue.py 의 마크다운 리포트 + 한 줄 코멘트 직접 표시. 작은 LLM이
      *  prefetch 무시하고 README 읽으려 하는 버릇 차단.
      *
@@ -21280,7 +21280,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         let cfg: any = {};
         try { cfg = JSON.parse(_safeReadText(ppJson) || '{}'); } catch { return null; }
         if (!cfg.CLIENT_ID || !cfg.CLIENT_SECRET) {
-            return `💼 현빈: 사장님, PayPal Client ID 또는 Secret 이 비어있어 매출을 가져올 수 없어요.
+            return `💼 성과관리관: 사장님, PayPal Client ID 또는 Secret 이 비어있어 매출을 가져올 수 없어요.
 
 📋 **해결 단계**:
 1. \`Cmd+Shift+P\` → \`Hermes_AIOS: 외부 연결\`
@@ -21303,14 +21303,14 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 setTimeout(() => { try { p.kill(); } catch {} resolve({ exitCode: -1, output: out, stderr: err }); }, 25000);
             });
             if (r.exitCode !== 0 || !r.output) {
-                return `💼 현빈: PayPal 데이터 가져오기 실패. ${r.stderr.slice(-150) || ''}
+                return `💼 성과관리관: PayPal 데이터 가져오기 실패. ${r.stderr.slice(-150) || ''}
 
 📋 Hermes 성과 데이터 파일을 다시 확인 후 재시도.
 📊 평가: 대기 — 자격증명 확인 필요.
 📝 다음 단계: \`Cmd+Shift+P\` → \`Hermes_AIOS: 외부 연결\` 에서 PayPal 카드 점검.
 `;
             }
-            const insight = `💼 현빈: 사장님, 실시간 PayPal 데이터 가져왔습니다. 즉시 분석 결과 보여드려요.\n\n`;
+            const insight = `💼 성과관리관: 사장님, 실시간 PayPal 데이터 가져왔습니다. 즉시 분석 결과 보여드려요.\n\n`;
             const footer = `\n\n📊 평가: 완료 — 실데이터 기반 분석 (LLM 우회, 환각 없음).\n📝 다음 단계: 위 "💡 다음 액션" 섹션 참고하시고, 더 깊이 분석 필요하면 매출 대시보드 (\`Cmd+Shift+P → 매출 대시보드\`) 에서 시각화 확인.\n`;
             return insight + r.output + footer;
         } catch (e: any) {

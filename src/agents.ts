@@ -31,7 +31,7 @@ export interface AgentDef {
 export const AGENTS: Record<string, AgentDef> = {
   ceo: {
     id: 'ceo',
-    name: 'CEO',
+    name: '총괄실장',
     role: 'Chief Executive Agent',
     emoji: '🧭',
     color: '#F8FAFC',
@@ -40,7 +40,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   youtube: {
     id: 'youtube',
-    name: '레오',
+    name: '시황영상관',
     role: 'Head of YouTube',
     emoji: '📺',
     color: '#FF4444',
@@ -51,7 +51,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   instagram: {
     id: 'instagram',
-    name: 'Instagram',
+    name: '기록채널',
     role: 'Head of Instagram',
     emoji: '📷',
     color: '#E1306C',
@@ -60,7 +60,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   designer: {
     id: 'designer',
-    name: 'Designer',
+    name: '디자인실',
     role: 'Lead Designer',
     emoji: '🎨',
     color: '#A78BFA',
@@ -80,7 +80,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   business: {
     id: 'business',
-    name: '현빈',
+    name: '성과관리관',
     role: '비즈니스 전략가 · Head of Business',
     emoji: '💼',
     color: '#F5C518',
@@ -90,7 +90,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   secretary: {
     id: 'secretary',
-    name: '영숙',
+    name: '비서실장',
     role: '비서 · Personal Assistant',
     emoji: '📱',
     color: '#84CC16',
@@ -112,7 +112,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   writer: {
     id: 'writer',
-    name: 'Writer',
+    name: '보고관',
     role: 'Copywriter',
     emoji: '✍️',
     color: '#FBBF24',
@@ -121,7 +121,7 @@ export const AGENTS: Record<string, AgentDef> = {
   },
   researcher: {
     id: 'researcher',
-    name: 'Researcher',
+    name: '수급탐정',
     role: 'Trend & Data Researcher',
     emoji: '🔍',
     color: '#60A5FA',
