@@ -149,7 +149,7 @@ function renderDonut(byProject, primaryCur) {
 
   if (entries.length === 0) {
     svg.innerHTML = `<circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="18"></circle>`;
-    legend.innerHTML = '<div style="color: var(--text-3); font-size: 0.85rem; padding: 10px 0;">결제 0건</div>';
+    legend.innerHTML = '<div style="color: var(--text-3); font-size: 0.85rem; padding: 10px 0;">매매 0건</div>';
     return;
   }
 
@@ -220,8 +220,8 @@ function renderTransactions(txs) {
   if (!txs || txs.length === 0) {
     feed.innerHTML = `<div class="empty">
       <div class="emoji">📭</div>
-      <h3>아직 거래가 없어요</h3>
-      <p>EZER 카탈로그를 공유하고 첫 결제를 기다리는 중...</p>
+      <h3>아직 매매 기록이 없어요</h3>
+      <p>Hermes 매매 로그가 쌓이면 최근 매매가 표시됩니다.</p>
     </div>`;
     return;
   }
@@ -263,7 +263,7 @@ function showBurst(tx) {
   const sign = isRefund ? '-' : '+';
   burst.innerHTML = `
     <div class="big">${sign}$${Math.abs(tx.value).toFixed(2)}</div>
-    <div class="sub">${esc(tx.subject || '새 결제')}</div>
+    <div class="sub">${esc(tx.subject || '새 매매')}</div>
   `;
   burst.classList.remove('show');
   void burst.offsetWidth;
@@ -272,27 +272,33 @@ function showBurst(tx) {
 
 // ───────── KPI strip render ─────────
 function renderKPI(data) {
+  const perf = data?.performance || {};
   const totals = data?.totals || {};
-  const period = totals.by_period || { today: 0, week: 0, month: 0 };
+  const period = totals.by_period || {};
   const byCur = totals.by_currency || {};
+  const krw = byCur.KRW || {};
+  const tradeCount = Number(krw.count || 0);
 
-  // primary currency (largest gross)
-  const primaryCur = Object.entries(byCur).sort((a,b) => (b[1].gross||0)-(a[1].gross||0))[0]?.[0] || 'USD';
-  $('curLabel').textContent = primaryCur;
+  const pct = (v) => {
+    const n = Number(v || 0);
+    return (n > 0 ? '+' : '') + n.toFixed(3) + '%';
+  };
+  const krwFmt = (v) => {
+    const n = Number(v || 0);
+    return (n > 0 ? '+' : '') + Math.round(n).toLocaleString('ko-KR') + ' KRW';
+  };
 
-  const cur = byCur[primaryCur] || {gross:0, refunds:0, fees:0, count:0};
-  const net = cur.gross - cur.refunds - cur.fees;
-  const txCount = cur.count || 0;
+  $('curLabel').textContent = '수익률';
+  $('kpiToday').textContent = pct(perf.today_return_pct);
+  $('kpiWeek').textContent = pct(perf.seven_day_return_pct);
+  $('kpiMonth').textContent = pct(perf.month_return_pct);
+  $('kpiNet').textContent = krwFmt(period.thirty ?? krw.gross ?? 0);
+  $('kpiCount').textContent = String(tradeCount);
 
-  countUp($('kpiToday'), period.today);
-  countUp($('kpiWeek'), period.week);
-  countUp($('kpiMonth'), period.month);
-  countUp($('kpiNet'), net);
-  countUp($('kpiCount'), txCount, { decimals: 0 });
+  $('kpiMonthSub').textContent =
+    `${tradeCount}건 · 승률 ${Number(perf.win_rate_pct || 0).toFixed(1)}% · 손절 ${Number(perf.stop_losses || 0)} · 익절 ${Number(perf.take_profits || 0)}`;
 
-  $('kpiMonthSub').textContent = `${txCount}건 · 환불 ${fmtNum(cur.refunds)} · 수수료 ${fmtNum(cur.fees)}`;
-
-  return primaryCur;
+  return 'KRW';
 }
 
 // ───────── Master render ─────────

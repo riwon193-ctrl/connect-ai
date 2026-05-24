@@ -7195,7 +7195,7 @@ function _seedYouTubeMyVideosCheck(toolsDir: string) {
 
 /* ─── 📈 채널 완전 분석 — v2.89.21 ──────────────────────────────────────────
    API 키 + 채널 ID 만 있으면 돌아가는 통합 분석 도구. my_videos_check 는
-   "이번 달 영상 떡상/부진 보기" 같은 단순 비교라면, 이건 채널 전체 그림:
+   "이번 달 수익률 영상 떡상/부진 보기" 같은 단순 비교라면, 이건 채널 전체 그림:
    - 채널 메타 (구독자·총조회·영상수·가입일·평균 조회)
    - 최근 30일 업로드 패턴 (요일·시간대·길이)
    - 영상별 참여율 (좋아요/조회, 댓글/조회)
@@ -7483,7 +7483,7 @@ async function prefetchAgentRealtimeData(agentId: string): Promise<string> {
 위 [실시간 데이터] 블록에 진짜 매출/거래/숫자가 모두 포함돼 있음. README 또는 .md 문서 읽지 마세요 — 그건 사용법 안내일 뿐이고 실데이터 아님. 위 표·숫자를 그대로 인용해서 즉시 분석/액션 제안.
 
 ✅ **즉시 답변 패턴**:
-1. 첫 줄: "사장님, 이번 달 매출 [정확한 금액] 입니다."
+1. 첫 줄: "사장님, 이번 달 수익률 매출 [정확한 금액] 입니다."
 2. 핵심 인사이트 1~2개 (위 데이터에서 직접 인용)
 3. 다음 액션 1개 (구체적, 실행 가능)
 4. 마지막 자가평가 + 다음 단계 (필수)`
@@ -10760,7 +10760,7 @@ class CompanyDashboardPanel {
                         if (_activeChatProvider) {
                             const model = _activeChatProvider.getDefaultModel();
                             _activeChatProvider.runCorporatePromptExternal(
-                                '현빈아, 이번 달 PayPal 매출 실데이터 가져와서 분석하고 다음 액션 1개 추천해줘.',
+                                '현빈아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
                                 model
                             ).catch(() => { /* ignore */ });
                         }
@@ -11455,11 +11455,11 @@ class CompanyDashboardPanel {
       <div class="rev-left">
         <div class="rev-eyebrow">PERFORMANCE COMMAND CENTER · <span class="rev-live"><span class="rev-pulse"></span> LIVE</span></div>
         <div class="rev-title">📈 수익률 관리 센터</div>
-        <div class="rev-sub" id="revSubtitle">PayPal 연결을 확인하는 중…</div>
+        <div class="rev-sub" id="revSubtitle">Hermes 성과 데이터를 확인하는 중…</div>
       </div>
       <div class="rev-kpis" id="revKpis">
-        <div class="rev-kpi rev-skeleton"><div class="rev-kpi-l">이번 달</div><div class="rev-kpi-v" id="revMonth">—</div></div>
-        <div class="rev-kpi rev-skeleton"><div class="rev-kpi-l">7일</div><div class="rev-kpi-v" id="revWeek">—</div></div>
+        <div class="rev-kpi rev-skeleton"><div class="rev-kpi-l">이번 달 수익률</div><div class="rev-kpi-v" id="revMonth">—</div></div>
+        <div class="rev-kpi rev-skeleton"><div class="rev-kpi-l">7일 수익률</div><div class="rev-kpi-v" id="revWeek">—</div></div>
         <div class="rev-kpi rev-skeleton"><div class="rev-kpi-l">거래</div><div class="rev-kpi-v" id="revCount">—</div></div>
       </div>
       <div class="rev-spark">
@@ -11468,7 +11468,7 @@ class CompanyDashboardPanel {
       <div class="rev-actions">
         <button class="rev-btn primary" id="openRevDashBtn">
           <span class="rev-btn-glow"></span>
-          <span>풀스크린 매출 대시보드</span>
+          <span>풀스크린 수익률 대시보드</span>
           <span class="rev-btn-arrow">→</span>
         </button>
         <button class="rev-btn ghost" id="askHyunbinBtn" title="현빈 에이전트에게 매출 분석 요청">🧠 현빈에게 분석 의뢰</button>
@@ -12146,7 +12146,7 @@ class RevenueDashboardPanel {
         }
         const panel = vscode.window.createWebviewPanel(
             RevenueDashboardPanel.viewType,
-            '💰 매출 대시보드',
+            '📈 수익률 대시보드',
             column,
             { enableScripts: true, retainContextWhenHidden: true }
         );
@@ -12175,35 +12175,9 @@ class RevenueDashboardPanel {
     private async _fetchAndPost() {
         this._post({ type: 'state', loading: true, error: null, data: null });
         try {
-            const ppToolDir = path.join(getCompanyDir(), '_agents', 'business', 'tools');
-            const ppScript = path.join(ppToolDir, 'paypal_revenue.py');
-            const ppJson = path.join(ppToolDir, 'paypal_revenue.json');
-            if (!fs.existsSync(ppScript) || !fs.existsSync(ppJson)) {
-                this._postError('PayPal 도구가 두뇌에 없어요. business 에이전트 활성화 후 다시 시도.');
-                return;
-            }
-            const cfg = JSON.parse(_safeReadText(ppJson) || '{}');
-            if (!cfg.CLIENT_ID || !cfg.CLIENT_SECRET) {
-                this._postError('performance_summary.json 확인 필요.');
-                return;
-            }
-            const env = { ...process.env, OUTPUT: 'json', LOOKBACK_DAYS: String(cfg.LOOKBACK_DAYS || 30) };
-            const r = await new Promise<{ exitCode: number; output: string; stderr: string }>((resolve) => {
-                const cp = require('child_process');
-                const p = cp.spawn(_pythonCmd(), [ppScript], { cwd: ppToolDir, env });
-                let out = '', err = '';
-                p.stdout?.on('data', (d: Buffer) => { out += d.toString(); });
-                p.stderr?.on('data', (d: Buffer) => { err += d.toString(); });
-                p.on('close', (code: number) => resolve({ exitCode: code, output: out, stderr: err }));
-                setTimeout(() => { try { p.kill(); } catch {} resolve({ exitCode: -1, output: out, stderr: err }); }, 25000);
-            });
-            if (r.exitCode !== 0 || !r.output) {
-                this._postError(`paypal_revenue.py 실패 (exit ${r.exitCode}). ${r.stderr.slice(-200) || ''}`);
-                return;
-            }
-            let data: any;
-            try { data = JSON.parse(r.output); } catch (pe: any) {
-                this._postError(`JSON 파싱 실패: ${pe?.message || pe}`);
+            const data = _readHermesPerformanceMiniData();
+            if (data?.error) {
+                this._postError(data.error);
                 return;
             }
             this._post({ type: 'state', loading: false, error: null, data });
@@ -12237,9 +12211,9 @@ class RevenueDashboardPanel {
     <div class="hero-mark">💰</div>
     <div class="hero-info">
       <div class="eyebrow">CONNECT AI · PERFORMANCE COMMAND CENTER</div>
-      <h1>매출 대시보드</h1>
+      <h1>수익률 대시보드</h1>
       <div class="hero-sub">
-        PayPal 거래 실시간 분석 · 게임별 매출 분해 · <span class="live">LIVE</span>
+        Hermes 매매 성과 분석 · 수익률/승률/거래수 추적 · <span class="live">LIVE</span>
         <span style="margin-left: 8px; color: var(--text-3); font-size: 0.8rem;" id="generated"></span>
       </div>
     </div>
@@ -12254,22 +12228,22 @@ class RevenueDashboardPanel {
   <!-- KPI strip -->
   <div class="kpi-strip">
     <div class="kpi today">
-      <div class="kpi-label">오늘 매출</div>
+      <div class="kpi-label">오늘 수익률</div>
       <div class="kpi-value" id="kpiToday" data-last="0">0.00</div>
       <div class="kpi-unit"><span id="curLabel">USD</span></div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">지난 7일</div>
+      <div class="kpi-label">7일 수익률</div>
       <div class="kpi-value" id="kpiWeek" data-last="0">0.00</div>
       <div class="kpi-unit">7-day rolling</div>
     </div>
     <div class="kpi month">
-      <div class="kpi-label">이번 달 (30일)</div>
+      <div class="kpi-label">이번 달 수익률 수익률</div>
       <div class="kpi-value" id="kpiMonth" data-last="0">0.00</div>
       <div class="kpi-sub" id="kpiMonthSub">—</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">순매출 / 거래수</div>
+      <div class="kpi-label">누적 손익 / 거래수</div>
       <div class="kpi-value" id="kpiNet" data-last="0">0.00</div>
       <div class="kpi-unit"><span id="kpiCount" data-last="0">0</span>건</div>
     </div>
@@ -12279,7 +12253,7 @@ class RevenueDashboardPanel {
   <div class="row">
     <div class="card">
       <div class="section">
-        <h2>30일 일별 매출 추이</h2>
+        <h2>30일 일별 손익 추이</h2>
         <div class="spark-wrap">
           <svg class="spark-svg" id="sparkSvg" viewBox="0 0 800 160" preserveAspectRatio="none"></svg>
         </div>
@@ -12287,7 +12261,7 @@ class RevenueDashboardPanel {
     </div>
     <div class="card">
       <div class="section">
-        <h2>프로젝트 구성</h2>
+        <h2>성과 구성</h2>
         <div class="donut-wrap">
           <div class="donut-rel">
             <svg class="donut-svg" id="donutSvg" viewBox="0 0 200 200"></svg>
@@ -12306,13 +12280,13 @@ class RevenueDashboardPanel {
   <div class="row" style="margin-top: 20px;">
     <div class="card">
       <div class="section">
-        <h2>프로젝트별 상세</h2>
+        <h2>종목/전략별 상세</h2>
         <div id="projBars"></div>
       </div>
     </div>
     <div class="card">
       <div class="section">
-        <h2>최근 거래</h2>
+        <h2>최근 매매</h2>
         <div class="feed" id="feed">
           <div class="skeleton" style="height: 60px; margin-bottom: 10px;"></div>
           <div class="skeleton" style="height: 60px; margin-bottom: 10px;"></div>
@@ -12609,7 +12583,7 @@ class OfficePanel {
                     this._sendInit();
                     break;
                 case 'openRevenueDashboard':
-                    /* v2.89.143 — 가상 사무실 HUD 클릭 → 풀스크린 매출 대시보드 */
+                    /* v2.89.143 — 가상 사무실 HUD 클릭 → 풀스크린 수익률 대시보드 */
                     RevenueDashboardPanel.createOrShow();
                     break;
                 case 'askHyunbinRevenue': {
@@ -12620,7 +12594,7 @@ class OfficePanel {
                     try {
                         const model = provider.getDefaultModel();
                         provider.runCorporatePromptExternal(
-                            '현빈아, 이번 달 PayPal 매출 실데이터 가져와서 분석하고 다음 액션 1개 추천해줘.',
+                            '현빈아, 이번 달 수익률 Hermes 주식 수익률 데이터를 분석하고 다음 관찰 포인트 1개 추천해줘.',
                             model
                         ).catch((e) => {
                             try { panel.webview.postMessage({ type: 'error', value: `⚠️ ${e?.message || e}` }); } catch { /* ignore */ }
@@ -19961,7 +19935,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                    LLM(gemma-2B) 이 system prompt 무시하고 README 읽으려는 버릇 차단. */
                 if (!shortcut && t.agent === 'business') {
                     const lower = prompt.toLowerCase();
-                    if (/매출|수익|결제|paypal|revenue|매상|매월|이번 달|이번달|월 매출|페이팔|돈|얼마 벌/.test(lower)) {
+                    if (/매출|수익|결제|paypal|revenue|매상|매월|이번 달 수익률|이번달|월 매출|페이팔|돈|얼마 벌/.test(lower)) {
                         shortcut = await this._tryRevenueShortcut(prompt);
                     }
                 }
