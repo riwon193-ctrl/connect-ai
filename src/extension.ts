@@ -304,7 +304,7 @@ function _killProcessesOnPort(port: number): number[] {
             }
         }
     } catch (e) {
-        console.error('[Connect AI] _killProcessesOnPort 실패:', e);
+        console.error('[Hermes_AIOS] _killProcessesOnPort 실패:', e);
     }
     return killed;
 }
@@ -469,7 +469,7 @@ function ensureBrainGitignore(brainDir: string) {
     const gi = path.join(brainDir, '.gitignore');
     if (fs.existsSync(gi)) return;
     const lines = [
-        '# Connect AI auto-generated',
+        '# Hermes_AIOS auto-generated',
         '.DS_Store',
         '.obsidian/',
         '.trash/',
@@ -651,7 +651,7 @@ function runCommandCaptured(
 }
 
 // ============================================================
-// Connect AI — Full Agentic Local AI for VS Code
+// Hermes_AIOS — Full Agentic Local AI for VS Code
 // 100% Offline · File Create · File Edit · Terminal · Multi-file Context
 // ============================================================
 
@@ -744,7 +744,7 @@ function _loadPrompt(file: string): string {
     try {
         cached = fs.readFileSync(path.join(_PROMPTS_DIR, file), 'utf-8');
     } catch (e: any) {
-        console.error(`[Connect AI] prompt 로드 실패 ${file}:`, e?.message || e);
+        console.error(`[Hermes_AIOS] prompt 로드 실패 ${file}:`, e?.message || e);
         cached = '';
     }
     _promptCache.set(file, cached);
@@ -761,7 +761,7 @@ function _loadToolSeed(rel: string): string {
     try {
         cached = fs.readFileSync(path.join(_TOOL_SEEDS_DIR, rel), 'utf-8');
     } catch (e: any) {
-        console.error(`[Connect AI] tool seed 로드 실패 ${rel}:`, e?.message || e);
+        console.error(`[Hermes_AIOS] tool seed 로드 실패 ${rel}:`, e?.message || e);
         cached = '';
     }
     _toolSeedCache.set(rel, cached);
@@ -864,7 +864,7 @@ const WORLD_LAYOUT = {
  *  agent at a real desk/seat in their room, avoiding walls and furniture.
  *  The y values anchor agent FEET (sprite is 96px tall, feet at bottom). */
 const CUSTOM_MAP_DESKS: Record<string, DeskPos> = {
-  // Top-left CEO solo office (glass-walled, "Connect AI" sign on wall)
+  // Top-left CEO solo office (glass-walled, "Hermes_AIOS" sign on wall)
   ceo:        { x: 8,  y: 22 },
   // Front desk just outside CEO's office — Secretary station
   secretary:  { x: 18, y: 33 },
@@ -929,12 +929,12 @@ function _migrateCompanyToSubdir() {
       const src = path.join(root, d);
       const dst = path.join(target, d);
       try { fs.renameSync(src, dst); } catch (e) {
-        console.warn(`[Connect AI] migration: rename ${d} failed`, e);
+        console.warn(`[Hermes_AIOS] migration: rename ${d} failed`, e);
       }
     }
-    console.log(`[Connect AI] migrated ${present.length} legacy folders under ${target}`);
+    console.log(`[Hermes_AIOS] migrated ${present.length} legacy folders under ${target}`);
   } catch (e) {
-    console.warn('[Connect AI] _company/ migration failed', e);
+    console.warn('[Hermes_AIOS] _company/ migration failed', e);
   }
 }
 
@@ -1031,9 +1031,9 @@ function _migrateCompanyToBrain() {
     if (_extCtx) {
       try { _extCtx.globalState.update('companyDir', undefined); } catch {}
     }
-    console.log(`Connect AI: migrated ${legacy} → ${brain}`);
+    console.log(`Hermes_AIOS: migrated ${legacy} → ${brain}`);
   } catch (e) {
-    console.error('Connect AI: company → brain migration failed', e);
+    console.error('Hermes_AIOS: company → brain migration failed', e);
   }
 }
 
@@ -2090,7 +2090,7 @@ function _releaseTelegramLockIfOwned(): void {
   } catch { /* ignore */ }
 }
 
-const TELEGRAM_HELP = `🤖 *Connect AI 봇* — 비서가 24시간 대기 중
+const TELEGRAM_HELP = `🤖 *Hermes_AIOS 봇* — 비서가 24시간 대기 중
 
 *그냥 자연어로 말해주세요. 비서가 알아서 처리합니다.*
 
@@ -2414,7 +2414,7 @@ function _buildCapabilityReport(): string {
     /* 1) 비서 본인의 직접 능력 */
     lines.push('*📅 일정 관리*');
     if (calOk) lines.push('  ✅ 추가·조회·수정·취소 (자연어로) — "내일 3시 미팅 잡아줘"');
-    else lines.push('  ⚠️ 미연결 — 명령 팔레트 → "Connect AI: Google Calendar 자동 일정 연결"');
+    else lines.push('  ⚠️ 미연결 — 명령 팔레트 → "Hermes_AIOS: Google Calendar 자동 일정 연결"');
     lines.push('');
     lines.push('*📨 텔레그램 양방향*');
     if (tg.token && tg.chatId) lines.push('  ✅ 작동 중 — 명령 받고 보고 보내기');
@@ -2687,7 +2687,7 @@ async function handleTelegramViaSecretary(userText: string): Promise<void> {
     if (mode === 'calendar_create') {
         const ev = parsed.event;
         if (!isCalendarWriteConnected()) {
-            await sendTelegramReport(`⚠️ Google Calendar가 연결되지 않았어요.\n\n*명령 팔레트* → "Connect AI: Google Calendar 자동 일정 연결" 로 먼저 셋업해주세요.`);
+            await sendTelegramReport(`⚠️ Google Calendar가 연결되지 않았어요.\n\n*명령 팔레트* → "Hermes_AIOS: Google Calendar 자동 일정 연결" 로 먼저 셋업해주세요.`);
             return;
         }
         if (!ev || typeof ev.title !== 'string' || typeof ev.start !== 'string') {
@@ -3595,7 +3595,7 @@ async function _runCalendarOAuthLoopback(
         }
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         if (err) {
-          res.end(`<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect AI — 인증 실패</title>
+          res.end(`<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hermes_AIOS — 인증 실패</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#080a0f;color:#e2e8f0;font-family:'SF Pro Display','Pretendard',-apple-system,system-ui,sans-serif;overflow:hidden}
@@ -3615,7 +3615,7 @@ h1{font-size:22px;font-weight:700;color:#ef4444;margin-bottom:10px;text-shadow:0
 <div class="icon">🔴</div>
 <h1>인증 실패</h1>
 <div class="err">${err}</div>
-<p class="msg">Connect AI로 돌아가서 다시 시도해주세요.</p>
+<p class="msg">Hermes_AIOS로 돌아가서 다시 시도해주세요.</p>
 <p class="hint">이 탭은 닫아도 됩니다.</p>
 </div>
 </body></html>`);
@@ -3623,7 +3623,7 @@ h1{font-size:22px;font-weight:700;color:#ef4444;margin-bottom:10px;text-shadow:0
           _resolve({ ok: false, error: err });
           return;
         }
-        res.end(`<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect AI — 인증 완료</title>
+        res.end(`<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hermes_AIOS — 인증 완료</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#080a0f;color:#e2e8f0;font-family:'SF Pro Display','Pretendard',-apple-system,system-ui,sans-serif;overflow:hidden}
@@ -3657,7 +3657,7 @@ h1{font-size:22px;font-weight:700;color:#00ff41;margin-bottom:10px;text-shadow:0
 <div class="brand">Connect · AI Solopreneur OS</div>
 <div class="ring"><span class="icon">✅</span></div>
 <h1>인증 완료!</h1>
-<p class="msg">Google Calendar가 <strong>Connect AI</strong>에 연결됐어요.<br>이 탭은 자동으로 닫힙니다.</p>
+<p class="msg">Google Calendar가 <strong>Hermes_AIOS</strong>에 연결됐어요.<br>이 탭은 자동으로 닫힙니다.</p>
 <p class="countdown" id="cd">3초 후 닫힘</p>
 </div>
 <script>
@@ -3728,7 +3728,7 @@ var t=setInterval(function(){s--;if(s<=0){clearInterval(t);cd.textContent='닫�
         prompt: 'consent',
       }).toString();
       try { await vscode.env.openExternal(vscode.Uri.parse(authUrl)); } catch { /* user can copy from log */ }
-      console.log('[Connect AI] Calendar OAuth URL:', authUrl);
+      console.log('[Hermes_AIOS] Calendar OAuth URL:', authUrl);
     });
     /* Cancel after 3 minutes max */
     const timer = setTimeout(() => {
@@ -4003,7 +4003,7 @@ async function _runRevenueWatcherOnce(): Promise<void> {
         _extCtx?.globalState.update(_REVENUE_LAST_SEEN_TS_KEY, newest.ts_epoch);
         _extCtx?.globalState.update(_REVENUE_LAST_SEEN_KEY, newest.id);
     } catch (e: any) {
-        console.warn('[Connect AI] revenue watcher tick 실패:', e?.message || e);
+        console.warn('[Hermes_AIOS] revenue watcher tick 실패:', e?.message || e);
     }
 }
 
@@ -4312,7 +4312,7 @@ async function scaffoldDeveloperProject(name: string, template: 'vite-vanilla' |
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex items-center justify-center">
   <main class="text-center space-y-4">
     <h1 class="text-4xl font-bold">${safe}</h1>
-    <p class="text-zinc-400">Connect AI · Developer 에이전트가 만든 페이지</p>
+    <p class="text-zinc-400">Hermes_AIOS · Developer 에이전트가 만든 페이지</p>
   </main>
 </body>
 </html>
@@ -5272,7 +5272,7 @@ ${AGENTS[id].name}의 system prompt에 자동 주입됩니다._
 
 ## 어떻게 채우나요?
 - 텔레그램에서 \`/skill\` (직전 산출물 자동 승격)
-- VS Code 명령 팔레트: \`Connect AI: 방금 산출물 → 스킬로 저장\`
+- VS Code 명령 팔레트: \`Hermes_AIOS: 방금 산출물 → 스킬로 저장\`
 - 직접 이 폴더에 \`<주제>.md\` 파일을 만들어도 됩니다 (\`# 제목\` + 본문)
 
 \`README.md\` 자체는 system prompt에 주입되지 않습니다.
@@ -5312,7 +5312,7 @@ ${presets}
   // .gitignore — 시크릿과 캐시 보호
   const giPath = path.join(dir, '.gitignore');
   const desiredGi =
-`# 자동 생성 — Connect AI 1인 기업 모드
+`# 자동 생성 — Hermes_AIOS 1인 기업 모드
 # 시크릿·API 키 보호
 _agents/*/config.md
 # 도구 설정 JSON 안에 API 키·텔레그램 봇 토큰이 들어갈 수 있어 git에서 제외
@@ -5377,7 +5377,7 @@ _tmp/
 5. 지식 베이스 (\`10_Wiki/\`)
 
 ## 다른 PC로 옮길 때
-1. 새 PC에 Connect AI 설치
+1. 새 PC에 Hermes_AIOS 설치
 2. 👔 모드 ON → "📥 다른 PC에서 가져오기" 선택
 3. GitHub URL 입력 → 자동 clone
 4. 끝.
@@ -5881,7 +5881,7 @@ function _seedBundledTemplates(agentId: string, targetDir: string) {
       _copyDirRecursive(src, dst);
     }
   } catch (err) {
-    console.error('[Connect AI] 템플릿 시드 실패:', err);
+    console.error('[Hermes_AIOS] 템플릿 시드 실패:', err);
   }
 }
 
@@ -7933,11 +7933,11 @@ function _recoverEngineUrlIfMismatched(context: vscode.ExtensionContext) {
             else if (await probe('http://127.0.0.1:11434', false)) target = 'http://127.0.0.1:11434';
             if (target && target !== url) {
                 await cfg.update('ollamaUrl', target, vscode.ConfigurationTarget.Global);
-                console.log(`Connect AI: engine URL recovered → ${target} (model: ${model})`);
+                console.log(`Hermes_AIOS: engine URL recovered → ${target} (model: ${model})`);
             }
             await context.globalState.update('engineUrlRecovered', true);
         } catch (e) {
-            console.error('Connect AI: engine URL recovery failed', e);
+            console.error('Hermes_AIOS: engine URL recovery failed', e);
         }
     })();
 }
@@ -7960,7 +7960,7 @@ function _autoPickInstalledModelIfMissing() {
                     const models = (r.data?.data || []) as Array<{ id: string }>;
                     if (models.length > 0) {
                         await cfg.update('defaultModel', models[0].id, vscode.ConfigurationTarget.Global);
-                        console.log(`Connect AI: auto-picked LM Studio model → ${models[0].id}`);
+                        console.log(`Hermes_AIOS: auto-picked LM Studio model → ${models[0].id}`);
                     }
                 } catch { /* LM Studio 미실행 — 다음 활성화 때 다시 시도 */ }
             } else {
@@ -7971,19 +7971,19 @@ function _autoPickInstalledModelIfMissing() {
                         // 가장 작은 모델부터 — 첫 호출 실패 진입 장벽 최소화
                         models.sort((a, b) => (a.size || 0) - (b.size || 0));
                         await cfg.update('defaultModel', models[0].name, vscode.ConfigurationTarget.Global);
-                        console.log(`Connect AI: auto-picked Ollama model → ${models[0].name} (${(models[0].size / 1e9).toFixed(2)} GB)`);
+                        console.log(`Hermes_AIOS: auto-picked Ollama model → ${models[0].name} (${(models[0].size / 1e9).toFixed(2)} GB)`);
                     }
                 } catch { /* Ollama 미실행 — 다음 활성화 때 다시 시도 */ }
             }
         } catch (e) {
-            console.error('Connect AI: auto-pick model failed', e);
+            console.error('Hermes_AIOS: auto-pick model failed', e);
         }
     })();
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    vscode.window.showInformationMessage('🔥 Connect AI V2 활성화 완료!');
-    console.log('Connect AI extension activated.');
+    vscode.window.showInformationMessage('🔥 Hermes_AIOS V2 활성화 완료!');
+    console.log('Hermes_AIOS extension activated.');
 
     _extCtx = context;
     /* v2.89.138 — extensionUri 즉시 세팅. 이전엔 "우리 회사 대시보드" 명령
@@ -8124,7 +8124,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (engineName) {
                     vscode.window.showInformationMessage(`🧠 자동 설정 완료! ${engineName} 감지됨 → 모델: ${modelName}`);
                 } else {
-                    vscode.window.showInformationMessage('🧠 Connect AI 준비 완료! LM Studio 또는 Ollama를 실행하면 자동 연결됩니다.');
+                    vscode.window.showInformationMessage('🧠 Hermes_AIOS 준비 완료! LM Studio 또는 Ollama를 실행하면 자동 연결됩니다.');
                 }
             } catch (e) {
                 // 마법사 실패해도 무시 (익스텐션 정상 작동)
@@ -8134,7 +8134,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // ==========================================
-    // EZER AI <-> Connect AI Bridge Server (Port 4825)
+    // EZER AI <-> Hermes_AIOS Bridge Server (Port 4825)
     // ==========================================
     try {
         const server = http.createServer((req, res) => {
@@ -8152,11 +8152,11 @@ export function activate(context: vscode.ExtensionContext) {
                 const brainDir = _getBrainDir();
                 const brainCount = fs.existsSync(brainDir) ? provider._findBrainFiles(brainDir).length : 0;
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                /* v2.89.127 — 신원·버전 정보 추가. 다른 Connect AI 인스턴스가 충돌 시
+                /* v2.89.127 — 신원·버전 정보 추가. 다른 Hermes_AIOS 인스턴스가 충돌 시
                    이 응답 보고 "우리 거다 → 조용히 공유 모드 / 옛 버전이면 자동 인계" 판단. */
                 res.end(JSON.stringify({
                     status: 'ok',
-                    msg: 'Connect AI Bridge Ready',
+                    msg: 'Hermes_AIOS Bridge Ready',
                     app: 'connect-ai-bridge',
                     version: _CONNECT_AI_VERSION,
                     pid: process.pid,
@@ -8171,7 +8171,7 @@ export function activate(context: vscode.ExtensionContext) {
                         const parsed = JSON.parse(body);
                         const promptStr = typeof parsed.prompt === 'string' ? parsed.prompt : '자동 접수된 문제';
 
-                        // 웹사이트에서 전송된 문제를 Connect AI 채팅창으로 실시간 보고
+                        // 웹사이트에서 전송된 문제를 Hermes_AIOS 채팅창으로 실시간 보고
                         provider.sendPromptFromExtension(`[A.U 입학시험 수신] ${promptStr}`);
 
                         // 실제 AI 엔진으로 문제를 전달하여 답안을 받아옴
@@ -8342,8 +8342,8 @@ export function activate(context: vscode.ExtensionContext) {
                 (async () => {
                     // Unconditional reception signal — proves the bridge endpoint
                     // was hit, regardless of folder state / sidebar / graph.
-                    console.log('[Connect AI Bridge] /api/brain-inject hit @', new Date().toISOString());
-                    vscode.window.setStatusBarMessage('🛬 Connect AI: 주입 요청 수신', 4000);
+                    console.log('[Hermes_AIOS Bridge] /api/brain-inject hit @', new Date().toISOString());
+                    vscode.window.setStatusBarMessage('🛬 Hermes_AIOS: 주입 요청 수신', 4000);
                     try {
                         const body = await readRequestBody(req);
                         const parsed = JSON.parse(body);
@@ -8433,8 +8433,8 @@ export function activate(context: vscode.ExtensionContext) {
                    바로 이 스킬을 <run_command>로 사용할 수 있음. brain-inject와
                    같은 패턴이지만 대상이 _agents/{agent}/tools/{name}.py임. */
                 (async () => {
-                    console.log('[Connect AI Bridge] /api/skill-inject hit @', new Date().toISOString());
-                    vscode.window.setStatusBarMessage('🛠 Connect AI: 스킬팩 수신', 4000);
+                    console.log('[Hermes_AIOS Bridge] /api/skill-inject hit @', new Date().toISOString());
+                    vscode.window.setStatusBarMessage('🛠 Hermes_AIOS: 스킬팩 수신', 4000);
                     try {
                         const body = await readRequestBody(req);
                         const parsed = JSON.parse(body);
@@ -8519,8 +8519,8 @@ export function activate(context: vscode.ExtensionContext) {
                    코다리 같은 에이전트가 다음 작업에 자동 참조.
                    payload: { agent, name, manifest, readme, files: {filename: content} } */
                 (async () => {
-                    console.log('[Connect AI Bridge] /api/template-inject hit @', new Date().toISOString());
-                    vscode.window.setStatusBarMessage('📋 Connect AI: 템플릿팩 수신', 4000);
+                    console.log('[Hermes_AIOS Bridge] /api/template-inject hit @', new Date().toISOString());
+                    vscode.window.setStatusBarMessage('📋 Hermes_AIOS: 템플릿팩 수신', 4000);
                     try {
                         const body = await readRequestBody(req);
                         const parsed = JSON.parse(body);
@@ -8619,20 +8619,20 @@ export function activate(context: vscode.ExtensionContext) {
         let _bridgeRetryCount = 0;
         const _tryStartBridge = (isRetry = false) => {
             server.listen(4825, '127.0.0.1', () => {
-                console.log('[Connect AI Bridge] listening on http://127.0.0.1:4825');
+                console.log('[Hermes_AIOS Bridge] listening on http://127.0.0.1:4825');
                 if (isRetry) {
                     /* 성공 명시 popup — 사용자가 분명히 봄 */
                     vscode.window.showInformationMessage(
                         '🟢 Bridge 인계 완료! 이 인스턴스가 메인 (포트 4825). EZER 연동 정상 작동.'
                     );
-                    vscode.window.setStatusBarMessage('🟢 Connect AI Bridge: 이 인스턴스가 메인', 8000);
+                    vscode.window.setStatusBarMessage('🟢 Hermes_AIOS Bridge: 이 인스턴스가 메인', 8000);
                 } else {
-                    vscode.window.setStatusBarMessage('🟢 Connect AI Bridge: 포트 4825 listening', 4000);
+                    vscode.window.setStatusBarMessage('🟢 Hermes_AIOS Bridge: 포트 4825 listening', 4000);
                 }
             });
         };
         server.on('error', async (err: any) => {
-            console.error('[Connect AI Bridge] server error:', err);
+            console.error('[Hermes_AIOS Bridge] server error:', err);
             if (err?.code === 'EADDRINUSE') {
                 _bridgeRetryCount++;
                 if (_bridgeRetryCount > 2) {
@@ -8651,14 +8651,14 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (probe.ours && probe.version === _CONNECT_AI_VERSION) {
                     /* 같은 버전 — 다른 윈도우/인스턴스가 메인. 조용히 공유 모드. */
-                    console.log(`[Connect AI Bridge] 공유 모드 — 다른 인스턴스(PID ${probe.pid})가 이미 메인`);
+                    console.log(`[Hermes_AIOS Bridge] 공유 모드 — 다른 인스턴스(PID ${probe.pid})가 이미 메인`);
                     vscode.window.setStatusBarMessage(`🔗 Bridge 공유 모드 (메인: 다른 윈도우)`, 5000);
                     return;
                 }
 
                 if (probe.ours && probe.version && _versionLessThan(probe.version, _CONNECT_AI_VERSION)) {
                     /* 옛 버전 — 자동 인계. 사용자에게 한 줄 알림만. */
-                    console.log(`[Connect AI Bridge] 옛 버전(${probe.version}) 감지 → 자동 인계 시작`);
+                    console.log(`[Hermes_AIOS Bridge] 옛 버전(${probe.version}) 감지 → 자동 인계 시작`);
                     const killed = _killProcessesOnPort(4825);
                     if (killed.length > 0) {
                         vscode.window.setStatusBarMessage(
@@ -8676,7 +8676,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                 /* 미상의 앱이 4825 잡고 있음 → 옛 사용자 확인 다이얼로그 */
                 const choice = await vscode.window.showWarningMessage(
-                    '🚫 포트 4825가 다른 앱에 사용 중입니다 (Connect AI 아님).\n자동 인계할까요?',
+                    '🚫 포트 4825가 다른 앱에 사용 중입니다 (Hermes_AIOS 아님).\n자동 인계할까요?',
                     { modal: false },
                     '🎯 인계 (다른 앱 종료)',
                     '🚫 이번엔 보기 모드'
@@ -8695,16 +8695,16 @@ export function activate(context: vscode.ExtensionContext) {
                         );
                     }
                 } else {
-                    vscode.window.setStatusBarMessage('🟡 Connect AI Bridge: 보기 모드 (포트 충돌)', 6000);
+                    vscode.window.setStatusBarMessage('🟡 Hermes_AIOS Bridge: 보기 모드 (포트 충돌)', 6000);
                 }
             } else {
-                vscode.window.showErrorMessage(`🚫 Connect AI Bridge 시작 실패: ${err?.message || err}`);
+                vscode.window.showErrorMessage(`🚫 Hermes_AIOS Bridge 시작 실패: ${err?.message || err}`);
             }
         });
         _tryStartBridge(false);
     } catch (e: any) {
-        console.error('[Connect AI Bridge] failed to start:', e);
-        vscode.window.showErrorMessage(`🚫 Connect AI Bridge 초기화 실패: ${e?.message || e}`);
+        console.error('[Hermes_AIOS Bridge] failed to start:', e);
+        vscode.window.showErrorMessage(`🚫 Hermes_AIOS Bridge 초기화 실패: ${e?.message || e}`);
     }
     // ==========================================
 
@@ -8724,7 +8724,7 @@ export function activate(context: vscode.ExtensionContext) {
     _ytDashboardProvider = new YouTubeDashboardProvider();
 
     // Persistent status bar — always-visible entry into the dashboard.
-    // Replaces the old in-sidebar CTAs. Click → "Connect AI: 회사 둘러보기".
+    // Replaces the old in-sidebar CTAs. Click → "Hermes_AIOS: 회사 둘러보기".
     const dashStatusBar = vscode.window.createStatusBarItem(
         vscode.StatusBarAlignment.Left, 100
     );
@@ -8963,7 +8963,7 @@ export function activate(context: vscode.ExtensionContext) {
             /* 결과 패널 표시 */
             const doc = await vscode.workspace.openTextDocument({
                 language: 'markdown',
-                content: `# 🔍 Connect AI — LLM 연결 진단\n\n_${new Date().toLocaleString('ko-KR')}_\n\n${out.join('\n')}\n\n---\n\n## 자주 막히는 곳\n\n### LM Studio가 처음이면\n1. LM Studio 앱 열기\n2. 좌측 사이드바 'Discover' (🔍) 에서 모델 검색·다운로드 (예: 'Qwen2.5 7B Instruct')\n3. 좌측 사이드바 'Chat' (💬) 가서 모델이 로드되는지 확인 (한 번 채팅해봐야 메모리에 올라옴)\n4. 좌측 사이드바 'Developer' (또는 'Local Server') 가기\n5. **'Start Server' 버튼 클릭** ← 이게 핵심. 시작 안 하면 Connect AI에서 못 봐요.\n6. 화면에 \`http://localhost:1234\` 같은 URL이 보이면 OK\n7. Connect AI 사이드바 위 모델 메뉴에서 모델 선택 → 채팅 시도\n\n### Ollama가 처음이면\n1. \`ollama pull qwen2.5:7b\` (터미널, 한 번만)\n2. \`ollama serve\` 또는 Ollama 앱 실행\n3. Connect AI 모델 메뉴에서 선택 → 채팅\n\n### 그래도 안 되면\n- VS Code/Anti-Gravity 재시작\n- 명령 팔레트 (Cmd+Shift+P) → \`Connect AI: 연결 진단\` 다시 실행\n- 위 결과 스크린샷 + LM Studio 'Developer' 탭 스크린샷을 함께 제보\n`,
+                content: `# 🔍 Hermes_AIOS — LLM 연결 진단\n\n_${new Date().toLocaleString('ko-KR')}_\n\n${out.join('\n')}\n\n---\n\n## 자주 막히는 곳\n\n### LM Studio가 처음이면\n1. LM Studio 앱 열기\n2. 좌측 사이드바 'Discover' (🔍) 에서 모델 검색·다운로드 (예: 'Qwen2.5 7B Instruct')\n3. 좌측 사이드바 'Chat' (💬) 가서 모델이 로드되는지 확인 (한 번 채팅해봐야 메모리에 올라옴)\n4. 좌측 사이드바 'Developer' (또는 'Local Server') 가기\n5. **'Start Server' 버튼 클릭** ← 이게 핵심. 시작 안 하면 Hermes_AIOS에서 못 봐요.\n6. 화면에 \`http://localhost:1234\` 같은 URL이 보이면 OK\n7. Hermes_AIOS 사이드바 위 모델 메뉴에서 모델 선택 → 채팅 시도\n\n### Ollama가 처음이면\n1. \`ollama pull qwen2.5:7b\` (터미널, 한 번만)\n2. \`ollama serve\` 또는 Ollama 앱 실행\n3. Hermes_AIOS 모델 메뉴에서 선택 → 채팅\n\n### 그래도 안 되면\n- VS Code/Anti-Gravity 재시작\n- 명령 팔레트 (Cmd+Shift+P) → \`Hermes_AIOS: 연결 진단\` 다시 실행\n- 위 결과 스크린샷 + LM Studio 'Developer' 탭 스크린샷을 함께 제보\n`,
             });
             await vscode.window.showTextDocument(doc, { preview: false });
         }),
@@ -9113,7 +9113,7 @@ export function activate(context: vscode.ExtensionContext) {
             OfficePanel.createOrShow(context, provider);
         }),
         /* v2.89.96 — 사이드바 ⋯ 메뉴가 어떤 이유로 클릭 안 받을 때를 대비한
-           명령 팔레트 fallback. Cmd/Ctrl+Shift+P → "Connect AI: 설정 열기" */
+           명령 팔레트 fallback. Cmd/Ctrl+Shift+P → "Hermes_AIOS: 설정 열기" */
         vscode.commands.registerCommand('connect-ai-lab.openSettings', async () => {
             try { await (provider as any)._handleSettingsMenu?.(); }
             catch (e: any) {
@@ -9142,7 +9142,7 @@ async function runConnectCompanyRepo() {
     const isNested = path.normalize(companyDir).startsWith(path.normalize(brainDir) + path.sep);
     if (isNested) {
         const ok = await vscode.window.showInformationMessage(
-            `회사 폴더가 두뇌 안 nested 위치에 있어요 — 두뇌 GitHub 저장소(\`secondBrainRepo\`)로 이미 같이 백업됩니다.\n\n별도 저장소를 쓰려면 먼저 명령 팔레트에서 "Connect AI: 회사 폴더 변경"으로 회사를 두뇌 외부로 옮기세요.`,
+            `회사 폴더가 두뇌 안 nested 위치에 있어요 — 두뇌 GitHub 저장소(\`secondBrainRepo\`)로 이미 같이 백업됩니다.\n\n별도 저장소를 쓰려면 먼저 명령 팔레트에서 "Hermes_AIOS: 회사 폴더 변경"으로 회사를 두뇌 외부로 옮기세요.`,
             { modal: false },
             '회사 폴더 변경하기',
             '괜찮아요'
@@ -9533,7 +9533,7 @@ function _RENDER_GRAPH_HTML(graphJson: string, isEmpty: boolean, forceGraphSrc: 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} data:; style-src ${cspSource} 'unsafe-inline'; script-src ${cspSource} 'unsafe-inline'; font-src ${cspSource};">
-  <title>Connect AI — 지식 네트워크</title>
+  <title>Hermes_AIOS — 지식 네트워크</title>
   <style>
     body { margin: 0; padding: 0; background: #131419; overflow: hidden; width: 100vw; height: 100vh; font-family: 'SF Pro Display', -apple-system, sans-serif; color: #d8d9de; }
     /* Subtle vignette behind the canvas — z-index -1 so it never obscures nodes */
@@ -11644,7 +11644,7 @@ function _loadWebviewAsset(name: string): string {
         const p = path.join(_dashboardExtensionUri.fsPath, 'assets', 'webview', name);
         return fs.readFileSync(p, 'utf-8');
     } catch (e: any) {
-        console.warn(`[Connect AI] webview asset 로드 실패 ${name}:`, e?.message || e);
+        console.warn(`[Hermes_AIOS] webview asset 로드 실패 ${name}:`, e?.message || e);
         return '';
     }
 }
@@ -11725,7 +11725,7 @@ const API_SERVICES: ApiServiceDef[] = [
         agentId: 'secretary',
         wizardCommand: 'connect-ai-lab.connectGoogleCalendarWrite',
         fields: [
-            { key: 'GOOGLE_CALENDAR_ID', label: 'Calendar ID', type: 'text', placeholder: 'primary 또는 yourcal@group.calendar.google.com', help: '명령 팔레트 → "Connect AI: Google Calendar 자동 일정 연결" 추천' },
+            { key: 'GOOGLE_CALENDAR_ID', label: 'Calendar ID', type: 'text', placeholder: 'primary 또는 yourcal@group.calendar.google.com', help: '명령 팔레트 → "Hermes_AIOS: Google Calendar 자동 일정 연결" 추천' },
         ],
     },
     {
@@ -12280,15 +12280,27 @@ class RevenueDashboardPanel {
 
     private _html(): string {
         return `<!doctype html><html><head><meta charset="utf-8">
-<style>${_loadWebviewAsset('revenue-dashboard.css')}</style>
+<style>${_loadWebviewAsset('revenue-dashboard.css')}
+<style>
+.hero-mark{
+  width:72px;height:72px;border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;font-weight:1000;letter-spacing:-.08em;
+  color:#67e8f9;
+  background:radial-gradient(circle at 35% 25%,rgba(103,232,249,.28),rgba(15,23,42,.88) 62%,rgba(2,6,23,.95));
+  border:1px solid rgba(103,232,249,.45);
+  box-shadow:0 0 28px rgba(34,211,238,.38), inset 0 0 24px rgba(34,211,238,.12);
+  text-shadow:0 0 12px rgba(103,232,249,.9);
+}
+</style>
 </head><body>
 <div class="glyph-rain" id="glyphRain"></div>
 
 <div class="wrap">
   <header class="hero">
-    <div class="hero-mark">💰</div>
+    <div class="hero-mark">H</div>
     <div class="hero-info">
-      <div class="eyebrow">CONNECT AI · PERFORMANCE COMMAND CENTER</div>
+      <div class="eyebrow">HERMES_AIOS · PERFORMANCE COMMAND CENTER</div>
       <h1>수익률 대시보드</h1>
       <div class="hero-sub">
         Hermes 매매 성과 분석 · 수익률/승률/거래수 추적 · <span class="live">LIVE</span>
@@ -12522,7 +12534,7 @@ async function startYouTubeOAuthFlow(): Promise<{ ok: boolean; message: string }
                 const ein = tk.data?.expires_in || 3600;
                 _writeYtOAuthTokens({ access_token: at, refresh_token: rt, expires_at: Date.now() + ein * 1000 });
                 res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-                res.end('<!doctype html><html><body style="background:#0a0d12;color:#e6edf3;font-family:sans-serif;text-align:center;padding:60px"><h1 style="color:#00ff41">✅ Connect AI · YouTube 연결 완료</h1><p>이 창을 닫고 안티그래비티로 돌아가세요.</p></body></html>');
+                res.end('<!doctype html><html><body style="background:#0a0d12;color:#e6edf3;font-family:sans-serif;text-align:center;padding:60px"><h1 style="color:#00ff41">✅ Hermes_AIOS · YouTube 연결 완료</h1><p>이 창을 닫고 안티그래비티로 돌아가세요.</p></body></html>');
                 if (!resolved) {
                     resolved = true;
                     clearTimeout(timer);
@@ -13824,8 +13836,9 @@ body.dispatching .beams{opacity:1}
   position:fixed;top:88px;right:22px;width:44px;height:44px;
   border-radius:50%;border:1px solid rgba(103,232,249,.4);
   background:linear-gradient(135deg,rgba(8,145,178,.9),rgba(34,211,238,.9));
-  color:#fff;font-size:1.2rem;cursor:pointer;z-index:50;
+  color:#67e8f9;font-size:1.35rem;font-weight:1000;letter-spacing:-.08em;cursor:pointer;z-index:50;
   display:none;align-items:center;justify-content:center;
+  text-shadow:0 0 10px rgba(103,232,249,.95);
   box-shadow:0 8px 24px rgba(34,211,238,.4);
   transition:all .2s;animation:frReopenPulse 2.5s ease-in-out infinite;
 }
@@ -13933,7 +13946,7 @@ body.dispatching .beams{opacity:1}
 </div>
 
 <!-- 숨김 상태에서 다시 열 수 있는 작은 핍 (floating 닫혔을 때만 보임) -->
-<button class="fr-reopen" id="frReopen" title="수익률 관리 센터 열기">💰</button>
+<button class="fr-reopen" id="frReopen" title="수익률 관리 센터 열기">H</button>
 
 <div class="office-wrap">
   <div class="office-floor" id="floor">
@@ -15215,7 +15228,7 @@ window.addEventListener('message', e => {
       document.body.classList.add('floorplan');
       try {
         const dbg = (m.debug || {});
-        console.log('[Connect AI] world init — buildings:', dbg.buildingsLoaded, '/ decor:', dbg.decorationsLoaded, '/ custom map:', dbg.customMap||'none');
+        console.log('[Hermes_AIOS] world init — buildings:', dbg.buildingsLoaded, '/ decor:', dbg.decorationsLoaded, '/ custom map:', dbg.customMap||'none');
         const customNote = (dbg.customMap === 'OK') ? ' · 🎨 커스텀 맵 사용' : '';
         logActivity('🛠','ceo','캠퍼스 v2.28: '+(dbg.buildingsLoaded||0)+'동 + '+(dbg.decorationsLoaded||0)+' 장식'+customNote);
       } catch {}
@@ -16624,9 +16637,9 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
             vscode.window.showWarningMessage('내보낼 대화가 없습니다.');
             return;
         }
-        let md = `# Connect AI — 대화 기록\n\n_${new Date().toLocaleString('ko-KR')}_\n\n---\n\n`;
+        let md = `# Hermes_AIOS — 대화 기록\n\n_${new Date().toLocaleString('ko-KR')}_\n\n---\n\n`;
         for (const m of this._displayMessages) {
-            const label = m.role === 'user' ? '**👤 You**' : '**✦ Connect AI**';
+            const label = m.role === 'user' ? '**👤 You**' : '**✦ Hermes_AIOS**';
             md += `### ${label}\n\n${m.text}\n\n---\n\n`;
         }
         const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -17775,7 +17788,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                    메모리 부족, 또는 prior request의 stream pipe가 꼬여 axios 내부에서
                    RangeError. */
                 const stack = msgErr?.stack ? String(msgErr.stack).split('\n').slice(0, 4).join('\n') : '';
-                console.error('[Connect AI] message handler 예외:', stack || msgErr);
+                console.error('[Hermes_AIOS] message handler 예외:', stack || msgErr);
                 try {
                     webviewView.webview.postMessage({
                         type: 'error',
@@ -18806,7 +18819,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
             let errMsg = '';
             if (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET') {
-                errMsg = `⚠️ ${targetName}에 연결할 수 없어요.\n\n**확인할 점:**\n• ${targetName} 앱이 켜져 있나요? (Start Server 클릭)\n• 포트가 ${isLM ? '1234' : '11434'} 맞나요? (설정 > Ollama URL)\n\n💡 **명령 팔레트 (Cmd+Shift+P) → "Connect AI: 연결 진단"** 실행하면 어디가 문제인지 자동 체크해드려요.`;
+                errMsg = `⚠️ ${targetName}에 연결할 수 없어요.\n\n**확인할 점:**\n• ${targetName} 앱이 켜져 있나요? (Start Server 클릭)\n• 포트가 ${isLM ? '1234' : '11434'} 맞나요? (설정 > Ollama URL)\n\n💡 **명령 팔레트 (Cmd+Shift+P) → "Hermes_AIOS: 연결 진단"** 실행하면 어디가 문제인지 자동 체크해드려요.`;
             } else if (error.response?.status === 400) {
                 errMsg = `⚠️ AI가 요청을 이해하지 못했어요.\n\n**해결 방법:**\n• 헤더의 모델 선택 드롭다운에서 다른 모델을 골라보세요\n${isLM ? '• LM Studio에서 모델을 먼저 로드(Load)했는지 확인하세요' : '• 터미널에서 `ollama list`로 설치된 모델을 확인하세요'}`;
             } else if (error.response?.status === 404) {
@@ -19570,7 +19583,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                         appendConversationLog({ speaker: '시스템', emoji: '📁', body: fileReport.join('\n') });
                     }
                 } catch (actErr: any) {
-                    console.error('[Connect AI] casual-chat 파일 액션 실패:', actErr?.message || actErr);
+                    console.error('[Hermes_AIOS] casual-chat 파일 액션 실패:', actErr?.message || actErr);
                 }
                 this._displayMessages.push({ text: this._stripActionTags(text), role: 'ai' });
                 appendConversationLog({ speaker: 'CEO', emoji: '👔', body: text });
@@ -19632,21 +19645,21 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                         base += `\n\n[활성 게이트] 다음 에이전트는 현재 사용 불가 — 절대 tasks 배열에 넣지 마세요: ${labels}\n`;
                     }
                 } catch (gateErr: any) {
-                    console.error('[Connect AI] 활성 게이트 적용 실패:', gateErr?.message || gateErr);
+                    console.error('[Hermes_AIOS] 활성 게이트 적용 실패:', gateErr?.message || gateErr);
                 }
                 ceoStage = 'readAgentSharedContext';
                 let shared = '';
                 try { shared = readAgentSharedContext('ceo'); }
                 catch (sc: any) {
                     /* 두뇌 RAG 등이 폭주해도 CEO 호출은 계속 — 컨텍스트 일부 누락한 채 진행. */
-                    console.error('[Connect AI] readAgentSharedContext 실패, 빈 컨텍스트로 계속:', sc?.message || sc);
+                    console.error('[Hermes_AIOS] readAgentSharedContext 실패, 빈 컨텍스트로 계속:', sc?.message || sc);
                     shared = '';
                 }
                 ceoStage = 'readRecentConversations';
                 let recent = '';
                 try { recent = readRecentConversations(2000); }
                 catch (rc: any) {
-                    console.error('[Connect AI] readRecentConversations 실패:', rc?.message || rc);
+                    console.error('[Hermes_AIOS] readRecentConversations 실패:', rc?.message || rc);
                     recent = '';
                 }
                 ceoSystemPrompt = `${base}\n${shared}${recent}`;
@@ -20976,7 +20989,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             return `💼 현빈: 사장님, PayPal Client ID 또는 Secret 이 비어있어 매출을 가져올 수 없어요.
 
 📋 **해결 단계**:
-1. \`Cmd+Shift+P\` → \`Connect AI: 외부 연결\`
+1. \`Cmd+Shift+P\` → \`Hermes_AIOS: 외부 연결\`
 2. 💰 PayPal 카드 → Client ID + Secret 입력
 3. 저장 → 즉시 매출 분석 가능
 
@@ -21000,7 +21013,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 
 📋 Hermes 성과 데이터 파일을 다시 확인 후 재시도.
 📊 평가: 대기 — 자격증명 확인 필요.
-📝 다음 단계: \`Cmd+Shift+P\` → \`Connect AI: 외부 연결\` 에서 PayPal 카드 점검.
+📝 다음 단계: \`Cmd+Shift+P\` → \`Hermes_AIOS: 외부 연결\` 에서 PayPal 카드 점검.
 `;
             }
             const insight = `💼 현빈: 사장님, 실시간 PayPal 데이터 가져왔습니다. 즉시 분석 결과 보여드려요.\n\n`;
@@ -21713,7 +21726,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
         // Show notification — silent suppresses for corporate dispatch (카드 뷰에서 별도 보고됨)
         const successCount = report.filter(r => r.startsWith('✅') || r.startsWith('✏️') || r.startsWith('🖥️') || r.startsWith('🗑️') || r.startsWith('📖') || r.startsWith('📂') || r.startsWith('🗂') || r.startsWith('🚀')).length;
         if (successCount > 0 && !opts?.silent) {
-            vscode.window.showInformationMessage(`Connect AI: ${successCount}개 에이전트 작업 완료!`);
+            vscode.window.showInformationMessage(`Hermes_AIOS: ${successCount}개 에이전트 작업 완료!`);
         }
 
         // Auto-Push Second Brain changes to Cloud
