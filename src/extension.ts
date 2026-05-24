@@ -770,7 +770,7 @@ function _loadToolSeed(rel: string): string {
 
 const SYSTEM_PROMPT = _loadPrompt('system.md');
 // ============================================================
-// 1인 기업 모드 — Multi-Agent Corporate System
+// 주식 관제실 모드 — Multi-Agent Corporate System
 // ------------------------------------------------------------
 // 총괄실장 + 5 specialist agents share a "Company" subtree under
 // the existing brain folder:
@@ -1832,12 +1832,12 @@ async function listInstalledModels(): Promise<{ id: string; backend: 'ollama' | 
 }
 
 /* v2.89.14 / v2.89.39 — 회사 이름 동적 치환. 프롬프트 상수에 \`{{COMPANY}}\` 플레이스홀더를
-   넣고 런타임에 사용자 회사명으로 치환. 회사명 미설정 시 "1인 기업" 같은 일반 표현으로.
+   넣고 런타임에 사용자 회사명으로 치환. 회사명 미설정 시 "주식 관제실" 같은 일반 표현으로.
    v2.89.39 이전엔 "JAY CORP"가 디폴트로 남아서 이 제품을 다른 사람이 쓸 때도 그 이름이
    나왔음 — 공용 배포 부적합. 이제 사용자별로 자기 회사명 또는 일반 명칭이 보임. */
 function _personalizePrompt(prompt: string): string {
   const name = (readCompanyName() || '').trim();
-  const display = name && name !== 'JAY CORP' ? name : '1인 기업';
+  const display = name && name !== 'JAY CORP' ? name : '주식 관제실';
   /* 양방향 치환: {{COMPANY}} 플레이스홀더 + 레거시 "JAY CORP" 하드코딩 둘 다 처리.
      레거시 처리는 시드된 회사 폴더의 identity.md / decisions.md / 메모리 등에 이미
      "JAY CORP"가 박혀있는 사용자도 있어서 호환을 위해 유지. */
@@ -2486,7 +2486,7 @@ async function handleTelegramCommand(text: string): Promise<void> {
     }
     /* v2.89.115 — /skill: 직전 specialist 산출물을 재사용 가능한 패턴으로
        승격해서 _agents/{id}/skills/<slug>.md 에 저장. Hermes Agent의 skill
-       자동승격을 1인 기업 컨셉으로 단순화한 것 — 자동 노이즈 X, 사용자가
+       자동승격을 주식 관제실 컨셉으로 단순화한 것 — 자동 노이즈 X, 사용자가
        명시적으로 트리거할 때만. 다음 호출부터 해당 specialist의 system prompt
        에 자동 주입됨.
          /skill            → 대화 로그에서 직전 specialist 자동 감지
@@ -4045,7 +4045,7 @@ async function _runDailyBriefingOnce(force = false): Promise<void> {
 
         /* Build the brief — kept text-only so the prompt stays small. */
         const dir = getCompanyDir();
-        const company = readCompanyName() || '1인 기업';
+        const company = readCompanyName() || '주식 관제실';
         const dateStr = new Date().toLocaleDateString('ko-KR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         /* 1. Calendar */
@@ -5533,7 +5533,7 @@ ${presets}
   // .gitignore — 시크릿과 캐시 보호
   const giPath = path.join(dir, '.gitignore');
   const desiredGi =
-`# 자동 생성 — Hermes_AIOS 1인 기업 모드
+`# 자동 생성 — Hermes_AIOS 주식 관제실 모드
 # 시크릿·API 키 보호
 _agents/*/config.md
 # 도구 설정 JSON 안에 API 키·텔레그램 봇 토큰이 들어갈 수 있어 git에서 제외
@@ -5572,10 +5572,10 @@ _tmp/
   const sysPath = path.join(dir, '_shared', '_system.md');
   if (!fs.existsSync(sysPath)) {
     fs.writeFileSync(sysPath,
-`# 🧬 1인 기업 OS — 자가 매뉴얼
+`# 🧬 주식 관제실 OS — 자가 매뉴얼
 
 ## 이 폴더는 무엇인가요?
-당신의 1인 기업의 두뇌입니다. 7명의 AI 에이전트가 여기서 일합니다.
+당신의 주식 관제실의 두뇌입니다. 7명의 AI 에이전트가 여기서 일합니다.
 
 ## 폴더 구조
 - \`_shared/\` — 모든 에이전트가 매번 읽는 공동 메모리
@@ -5946,7 +5946,7 @@ function readGraphRagBrainContext(agentId: string, budgetChars: number = 2400): 
 function readAgentSharedContext(agentId: string, opts?: { lean?: boolean }): string {
   /* v2.89.42 — lean 모드 = 두뇌 "삭제"가 아니라 "축소". 실데이터 prefetch가 성공해서
      큰 컨텍스트가 들어왔을 때 두뇌 콘텐츠 자르기보다 줄이는 쪽으로 결정.
-     사용자가 쌓아둔 결정·메모리·brain 노트는 분석에 쓸 수 있어야 함 (제2의 두뇌 컨셉의
+     사용자가 쌓아둔 결정·메모리·brain 노트는 분석에 쓸 수 있어야 함 (운영 아카이브 컨셉의
      핵심). 단 너무 길면 추론 느려지고 환각 위험 — 그래서 적정 크기로 축소.
        normal: decisions 3000자 / memory 4000자 / brain RAG 2400자 (총 ~9400자)
        lean:   decisions 1200자 / memory 1500자 / brain RAG  900자 (총 ~3600자)
@@ -6083,7 +6083,7 @@ function appendAgentMemory(agentId: string, line: string) {
 }
 
 /* ── Curated skills (재사용 패턴) ─────────────────────────────────────────
-   v2.89.115 — Hermes Agent의 skill 자동승격 패턴을 1인 기업 컨셉에 이식.
+   v2.89.115 — Hermes Agent의 skill 자동승격 패턴을 주식 관제실 컨셉에 이식.
    memory.md는 모든 활동을 그대로 누적하는 append-only 로그(firehose)이고,
    skills/는 사용자가 명시적으로 "이거 패턴화"라고 승격시킨 것만. 신뢰도가
    훨씬 높으므로 system prompt에 더 강한 라벨로 주입한다. */
@@ -7862,7 +7862,7 @@ function buildAgentConfigStatus(agentId: string): string {
 
 function buildSpecialistPrompt(agentId: string): string {
   const a = AGENTS[agentId];
-  const company = readCompanyName() || '1인 기업';
+  const company = readCompanyName() || '주식 관제실';
   /* v2.89.45 — 페르소나 블록. 에이전트별 voice 정의가 있으면 주입 → 똑같은 LLM이라도
      시황영상관는 데이터 중심 솔직한 톤, 비서실장은 정중·친근한 톤으로 답함. 인격 있는 동료처럼 보임. */
   const personaBlock = a.persona
@@ -8278,9 +8278,9 @@ export function activate(context: vscode.ExtensionContext) {
     // 사용자(자원이 빠듯한 PC + 처음 확장을 켠 직후 Ollama 차가운 상태)에서
     // 12초 뒤 자동 호출이 "model failed to load"로 실패해 사용자가 무엇이
     // 잘못됐는지 모르는 채로 에러를 보는 케이스가 보고됨.
-    // 사용자가 1인 기업 모드(👔)를 직접 켜는 시점에 그날의 첫 브리핑이 흐릅니다.
+    // 사용자가 주식 관제실 모드(👔)를 직접 켜는 시점에 그날의 첫 브리핑이 흐릅니다.
     // 24시간 ON의 진짜 의미: idle 여부와 상관없이 15분마다 총괄실장 사이클.
-    // 사이드바 1인 기업 모드(👔) ON/OFF와도 무관 — 백그라운드에서 계속 일함.
+    // 사이드바 주식 관제실 모드(👔) ON/OFF와도 무관 — 백그라운드에서 계속 일함.
     provider.startAutoCycle(15, 0);
 
     // Telegram bidirectional bot — quietly idles when token/chat_id missing,
@@ -9197,7 +9197,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
         /* v2.89.115 — 직전 specialist 산출물을 재사용 가능한 패턴으로 승격.
-           Hermes Agent의 self-improving skill 패턴을 1인 기업 컨셉에 맞게
+           Hermes Agent의 self-improving skill 패턴을 주식 관제실 컨셉에 맞게
            단순화 (자동 노이즈 X, 사용자가 명시적으로 트리거할 때만). */
         vscode.commands.registerCommand('connectAiLab.skill.saveLast', async () => {
             try {
@@ -11398,7 +11398,7 @@ class CompanyDashboardPanel {
     private async _sendState() {
         const cfg = this._loadCfg();
         const oauthConnected = isYoutubeOAuthConnected();
-        const company = readCompanyName() || '1인 기업';
+        const company = readCompanyName() || '주식 관제실';
         const tracker = readTracker().tasks;
         const openTasks = tracker.filter(t => t.status !== 'done' && t.status !== 'cancelled');
         const overdueTasks = openTasks.filter(t => t.dueAt && new Date(t.dueAt).getTime() < Date.now()).length;
@@ -11994,7 +11994,7 @@ const API_SERVICES: ApiServiceDef[] = [
         id: 'gemini',
         name: 'Google Gemini (AI 텍스트 + 이미지)',
         icon: '✨',
-        summary: '운영자의 1인 기업 서비스에서 Gemini AI 호출 (텍스트 + Imagen 3 이미지). 키트 자동 적용 시 HTML 에 자동 inline 박힘. 보안: Google Cloud Console 에서 HTTP Referer 제한 권장.',
+        summary: '운영자의 주식 관제실 서비스에서 Gemini AI 호출 (텍스트 + Imagen 3 이미지). 키트 자동 적용 시 HTML 에 자동 inline 박힘. 보안: Google Cloud Console 에서 HTTP Referer 제한 권장.',
         helpUrl: 'https://aistudio.google.com/apikey',
         agentId: 'business',
         fields: [
@@ -12282,7 +12282,7 @@ async function saveApiConnection(serviceId: string, values: Record<string, strin
         }
         /* v2.89.153 — Gemini API 캐노니컬 JSON 동기화. pack_apply 가 키트 적용 시
            HTML 의 __GEMINI_API_KEY__ placeholder 를 이 키로 자동 inline.
-           운영자 (1인 기업) 의 단일 자격증명을 모든 키트가 공유. */
+           운영자 (주식 관제실) 의 단일 자격증명을 모든 키트가 공유. */
         if (serviceId === 'gemini') {
             const gToolDir = path.join(getCompanyDir(), '_agents', 'business', 'tools');
             const gJsonPath = path.join(gToolDir, 'gemini_account.json');
@@ -13322,7 +13322,7 @@ class OfficePanel {
         this._panel.webview.postMessage({
             type: 'officeInit',
             agents,
-            companyName: readCompanyName() || '1인 기업',
+            companyName: readCompanyName() || '주식 관제실',
             companyDir: dir.replace(os.homedir(), '~'),
             assetsAvailable: Object.keys(characterUris).length > 0,
             world,
@@ -13362,7 +13362,7 @@ class OfficePanel {
 *{margin:0;padding:0;box-sizing:border-box;font-family:'SF Pro Display',-apple-system,'Segoe UI',sans-serif}
 /* v2.86: unified to the matrix black + green palette across the whole app
    so the office, dashboard, and chat all share one identity. The amber
-   override that used to flip on for "1인 기업 모드" is removed — having
+   override that used to flip on for "주식 관제실 모드" is removed — having
    two parallel colors made the product feel like two different apps. */
 :root{--accent:#00FF41;--accent2:#008F11;--accent-glow:rgba(0,255,65,.22);--bg:#040608;--bg2:#080B10;--surface:rgba(15,22,30,.78);--border:rgba(255,255,255,.06);--text:#E5E7EB;--text-dim:#8A95A3;--text-bright:#fff}
 html,body{width:100%;height:100%;background:var(--bg);color:var(--text);overflow:hidden}
@@ -13552,6 +13552,27 @@ body{display:flex;flex-direction:column}
 .world-decorations{position:absolute;inset:0;pointer-events:none;z-index:3}
 .world-decorations img{position:absolute;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));display:block;transform:translate(-50%,-100%)}
 .office-bg{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;display:block}
+.office-wall-sign{
+  position:absolute;
+  left:37.8%;
+  top:4.9%;
+  transform:translate(-50%,-50%);
+  z-index:2.6;
+  min-width:215px;
+  padding:8px 14px 7px;
+  text-align:center;
+  pointer-events:none;
+  border:1px solid rgba(0,255,65,.55);
+  border-radius:6px;
+  background:linear-gradient(180deg,rgba(2,8,10,.92),rgba(0,18,8,.88));
+  box-shadow:0 0 18px rgba(0,255,65,.22),inset 0 0 12px rgba(0,255,65,.10);
+  color:#E9FFF0;
+  font-family:'SF Mono',monospace;
+  letter-spacing:1.8px;
+  text-shadow:0 0 8px rgba(0,255,65,.8),0 1px 2px rgba(0,0,0,.95);
+}
+.office-wall-sign div{font-size:17px;font-weight:900;line-height:1}
+.office-wall-sign span{display:block;margin-top:4px;font-size:6.5px;color:var(--accent);letter-spacing:1.5px;opacity:.9}
 .office-zones{position:absolute;inset:0;pointer-events:none;z-index:2}
 .office-zones .zone-label{position:absolute;font-family:'SF Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;text-shadow:0 0 6px rgba(0,255,65,.7),0 1px 2px rgba(0,0,0,.95);opacity:.55;transform:translate(-50%,-100%);white-space:nowrap;padding:1px 4px;border-radius:2px;background:rgba(0,8,4,.45)}
 /* Hide legacy single-room overlay UI in unified-office mode. */
@@ -14157,7 +14178,7 @@ body.dispatching .beams{opacity:1}
         <div class="brand-name loading" id="topCompany">불러오는 중…</div>
         <button class="brand-edit" id="pickFolderBtn" title="회사 폴더 변경">⚙</button>
       </div>
-      <div class="brand-sub">나만의 에이전트 팀</div>
+      <div class="brand-sub">Hermes_AIOS 운영팀</div>
     </div>
   </div>
 
@@ -14253,6 +14274,7 @@ body.dispatching .beams{opacity:1}
         <div class="world-grass" id="worldGrass"></div>
         <div class="world-paths" id="worldPaths"></div>
         <div class="world-buildings" id="worldBuildings"></div>
+        <div class="office-wall-sign"><div>Hermes_AIOS</div><span>TRADING COMMAND CENTER</span></div>
         <div class="world-decorations" id="worldDecor"></div>
         <div class="office-zones" id="officeZones"></div>
         <!-- agents inserted here by JS — coords resolve % of stageInner -->
@@ -15288,7 +15310,7 @@ function applyWorkdayState(on, opts){
     workdayBtn.classList.toggle('off', !_workdayOn);
     workdayBtn.style.color = '';
     workdayBtn.title = _workdayOn
-      ? '🟢 ON — 1인 기업 에이전트들이 15분마다 미션을 향해 자동으로 한 스텝씩 일합니다. 자리 비워도, 일반 채팅 모드여도 계속 일해요. 클릭하면 끔.'
+      ? '🟢 ON — 주식 관제실 에이전트들이 15분마다 미션을 향해 자동으로 한 스텝씩 일합니다. 자리 비워도, 일반 채팅 모드여도 계속 일해요. 클릭하면 끔.'
       : '⚫ OFF — 자동 사이클 중단. 사용자가 직접 명령할 때만 동작. 클릭하면 다시 켬.';
   }
   if (_workdayOn) {
@@ -15502,7 +15524,7 @@ window.addEventListener('message', e => {
       agents = m.agents || [];
       agentMap = {}; deskEls = {};
       agents.forEach(a => { agentMap[a.id] = a; });
-      topCompany.textContent = m.companyName || '1인 기업';
+      topCompany.textContent = m.companyName || '주식 관제실';
       /* Drop the 'loading' style class once the real name arrives so the
          brand text picks up the bold heading style. */
       topCompany.classList.remove('loading');
@@ -16106,7 +16128,7 @@ vscode.postMessage({ type: 'officeReady' });
 
 class SidebarChatProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
-    // Sidebar's 1인 기업 모드 toggle. When false, autonomous corp activity
+    // Sidebar's 주식 관제실 모드 toggle. When false, autonomous corp activity
     // (morning briefing, auto cycle, ambient chatter) still runs in the
     // background and writes to the conversation log + office panel, but is
     // suppressed in the chat sidebar so regular chats stay clean.
@@ -16167,7 +16189,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
         try { this._view?.webview.postMessage({ type: 'agentPulse', agent, icon, ms, log }); } catch { /* ignore */ }
     }
     private _broadcastCorporate(msg: any) {
-        // Sidebar receives corp messages ONLY when its 1인 기업 모드 toggle is ON.
+        // Sidebar receives corp messages ONLY when its 주식 관제실 모드 toggle is ON.
         // The office panel always receives them; the daily conversation log file
         // is written separately by appendConversationLog() upstream.
         if (this._sidebarCorpModeOn) {
@@ -16249,7 +16271,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
 
     /** Start the auto-cycle scheduler. Every interval, if idle > threshold and
      *  the company is configured, 총괄실장 autonomously dispatches one priority task. */
-    /** 24시간 자율 업무 — 사용자가 자리에 있든 없든, 1인 기업 모드(👔)가
+    /** 24시간 자율 업무 — 사용자가 자리에 있든 없든, 주식 관제실 모드(👔)가
      *  사이드바에 켜져 있든 꺼져 있든, autoCycleEnabled가 true면 정해진
      *  간격마다 총괄실장가 알아서 일을 분배합니다. 이게 "24시간 ON"의 진짜 의미.
      *  안전장치는 두 가지: (1) 동일 사이클 중복 실행 방지, (2) 사용자가 직접
@@ -16356,7 +16378,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
            명령이 들어오면 그게 우선. 자율 사이클이 진행 중일 때 다음 사이클
            들어오면 큐에 같은 키로 이미 있어서 중복 추가 안 됨(=정상). */
         this.enqueueDispatch(
-            `[자율 사이클 — ${today}] 1인 기업 24시간 운영 중. 회사 목표·각 에이전트의 개인 목표(_agents/{id}/goal.md)·최근 의사결정·메모리를 검토해서 지금 가장 가치 있는 단일 작업 1개를 결정하고, 적절한 1~2명 에이전트에게 분배해서 실행하세요. 같은 산출물을 반복하지 마세요 — 메모리에 비슷한 항목이 24시간 내에 있으면 다른 각도로 진전시키세요.`,
+            `[자율 사이클 — ${today}] 주식 관제실 24시간 운영 중. 회사 목표·각 에이전트의 개인 목표(_agents/{id}/goal.md)·최근 의사결정·메모리를 검토해서 지금 가장 가치 있는 단일 작업 1개를 결정하고, 적절한 1~2명 에이전트에게 분배해서 실행하세요. 같은 산출물을 반복하지 마세요 — 메모리에 비슷한 항목이 24시간 내에 있으면 다른 각도로 진전시키세요.`,
             model,
             'auto',
             false,
@@ -17165,7 +17187,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                 case 'getModels':
                     await this._sendModels();
                     break;
-                /* v2.89.116 — 1인 기업 모드 specialist dock. 사이드바 헤더의 단일
+                /* v2.89.116 — 주식 관제실 모드 specialist dock. 사이드바 헤더의 단일
                    모델 셀렉터 자리에서 9명 specialist의 모델 매핑을 한눈에 보고
                    인라인 변경. dashboard의 "모델 오케스트레이션" 모달과 동일
                    백엔드 함수(_autoOrchestrateModelMap, writeAgentModelMap)를
@@ -17696,7 +17718,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                         const dir = getCompanyDir();
                         const exists = fs.existsSync(path.join(dir, '_shared'));
                         const configured = isCompanyConfigured();
-                        // 사용자가 1인 기업 모드를 직접 켤 때 그날의 첫 모닝
+                        // 사용자가 주식 관제실 모드를 직접 켤 때 그날의 첫 모닝
                         // 브리핑을 흐립니다. 이전 버전에선 활성화 직후 자동
                         // 발사돼서 Ollama 차가운 상태로 "model failed to load"
                         // 에러가 사용자 액션 없이 떴음. 이제 명시적 트리거 시점에만.
@@ -19765,7 +19787,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
     }
 
     // --------------------------------------------------------
-    // 1인 기업 모드 — Multi-Agent Orchestration
+    // 주식 관제실 모드 — Multi-Agent Orchestration
     // --------------------------------------------------------
     // 총괄실장 에이전트가 사용자 한 줄 명령을 받아 작업을 분해하고,
     // 전문 에이전트들에게 순차로 일을 분배합니다. 각 에이전트는
@@ -20953,7 +20975,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             // through the same channels as Secretary's other replies.
             if (bridgeMode !== 'off') {
                 try {
-                    const wrapSys = `당신은 1인 기업의 비서입니다. 방금 회사가 사장님 명령을 처리해서 종합 보고서가 나왔습니다.\n사장님(사용자)께 1~2 문장으로 친근하게 정리해서 전달하세요.\n- "사장님, ~"으로 시작\n- 핵심 결과 1개 + 필요하면 다음 액션 한 줄\n- JSON·머리말·꼬리말 금지. 평문만.`;
+                    const wrapSys = `당신은 주식 관제실의 비서입니다. 방금 회사가 사장님 명령을 처리해서 종합 보고서가 나왔습니다.\n사장님(사용자)께 1~2 문장으로 친근하게 정리해서 전달하세요.\n- "사장님, ~"으로 시작\n- 핵심 결과 1개 + 필요하면 다음 액션 한 줄\n- JSON·머리말·꼬리말 금지. 평문만.`;
                     const wrapUsr = `[사장님 명령]\n${prompt.slice(0, 400)}\n\n[총괄실장 종합 보고]\n${finalReport.slice(0, 1500)}`;
                     const wrap = await this._callAgentLLM(wrapSys, wrapUsr, modelName, 'secretary', false);
                     const wrapText = (wrap || '').trim().slice(0, 500);
@@ -20968,7 +20990,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             // 6.5) Secretary 자동 텔레그램 보고 (토큰 있을 때만)
             const tg = readTelegramConfig();
             if (tg.token && tg.chatId) {
-                const company = readCompanyName() || '1인 기업';
+                const company = readCompanyName() || '주식 관제실';
                 /* v2.89 — 자율 사이클 vs 사용자 명령 헤더 구분. 자리 비웠을 때
                    회사가 알아서 한 일도 한 눈에 알 수 있게. */
                 const isAuto = /^\[자율 사이클/.test(prompt);
@@ -20988,7 +21010,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 
             // 7) 디스플레이 히스토리 (간략)
             this._displayMessages.push({
-                text: `**[1인 기업 모드]** ${plan.brief}\n\n${finalReport}\n\n_📁 저장: ${sessionDisplay}_`,
+                text: `**[주식 관제실 모드]** ${plan.brief}\n\n${finalReport}\n\n_📁 저장: ${sessionDisplay}_`,
                 role: 'ai'
             });
             this._saveHistory();
@@ -21004,7 +21026,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             if (isAborted()) {
                 this._broadcastCorporate({ type: 'error', value: '🛑 사용자가 중단했어요.' });
             } else {
-                this._broadcastCorporate({ type: 'error', value: `⚠️ 1인 기업 모드 오류: ${error.message}` });
+                this._broadcastCorporate({ type: 'error', value: `⚠️ 주식 관제실 모드 오류: ${error.message}` });
             }
         } finally {
             this._abortController = undefined;

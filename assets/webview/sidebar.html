@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Connect AI</title>
+<title>Hermes_AIOS</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -20,7 +20,7 @@ body.corp-on { /* color overrides removed — see :root above */ }
 /* v2.89.90 — 항상 다크 강제. 이전엔 body.vscode-light에서 색 변수 swap했는데,
    3700줄 CSS의 컴포넌트 절반 이상이 var() 안 쓰고 #c9d1d9, #7c7f8a 같은
    다크 전용 회색을 하드코딩 → 라이트 모드에선 텍스트가 유령처럼 안 보였음.
-   1000+ 군데 마이그레이션 대신 Connect AI는 안티그래비티 라이트 모드에서도
+   1000+ 군데 마이그레이션 대신 Hermes_AIOS는 안티그래비티 라이트 모드에서도
    자기 정체성(매트릭스 블랙+그린) 유지. Cursor Chat·Copilot Chat·Warp 방식.
    color-scheme: dark는 스크롤바·기본 폼 위젯·autofill까지 다크로 렌더. */
 html { color-scheme: dark; }
@@ -40,7 +40,7 @@ body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%
 @keyframes thinkSlide{0%{left:-40%}100%{left:100%}}
 .header-left{display:flex;align-items:center;gap:8px}
 .logo{width:26px;height:26px;border-radius:6px;background:#050505;border:1px solid rgba(0,255,65,.3);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);box-shadow:0 0 15px rgba(0,255,65,.15);animation:logoPulse 3s ease-in-out infinite;position:relative;text-shadow:0 0 8px var(--accent);transition:color .35s,border-color .35s,box-shadow .35s,text-shadow .35s}
-/* 1인 기업 모드 ON = 골드 럭셔리 톤. 로고도 같이 골드로 빛나야 통일감 있음.
+/* 주식 관제실 모드 ON = 골드 럭셔리 톤. 로고도 같이 골드로 빛나야 통일감 있음.
    주의: logoPulse 키프레임이 box-shadow를 매 프레임 형광녹색으로 덮어쓰기
    때문에 정적 box-shadow override만으로는 안 먹힘. 별도 corpLogoPulse
    키프레임으로 애니메이션 자체를 골드로 교체. */
@@ -64,7 +64,7 @@ select:hover,select:focus{border-color:var(--accent);box-shadow:0 0 12px var(--a
 .btn-icon:hover{color:var(--text-bright);border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 15px var(--accent-glow)}
 .btn-icon:hover::before{opacity:1}
 /* 24시간 자율 사이클이 백그라운드에서 진행 중일 때 — 👔 버튼이 펄스로 빛남.
-   1인 기업 = 골드 톤이라 펄스 색도 골드로 통일 (이전엔 메인 앱 --accent를
+   주식 관제실 = 골드 톤이라 펄스 색도 골드로 통일 (이전엔 메인 앱 --accent를
    따라 형광 녹색이었음). */
 #corporateBtn.autocycle-active{color:var(--text-bright);border-color:#FBBF24;animation:btnAutoPulse 2.4s ease-in-out infinite}
 #corporateBtn.autocycle-active::after{content:'';position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#FBBF24;box-shadow:0 0 10px #FBBF24,0 0 20px rgba(251,191,36,.35);animation:btnDotBlink 1.4s ease-in-out infinite;z-index:2}
@@ -146,7 +146,7 @@ select:hover,select:focus{border-color:var(--accent);box-shadow:0 0 12px var(--a
 .welcome{text-align:center;padding:0 20px 20px;position:relative}
 .welcome-logo{width:56px;height:56px;border-radius:16px;margin:0 auto 16px;background:#050505;border:1px solid rgba(0,255,65,.3);display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--accent);box-shadow:inset 0 0 15px rgba(0,255,65,.1), 0 0 30px rgba(0,255,65,.2);animation:welcomeFloat 4s ease-in-out infinite;position:relative;text-shadow:0 0 15px var(--accent);transition:color .35s,border-color .35s,box-shadow .35s,text-shadow .35s}
 .welcome-logo::before{content:'';position:absolute;inset:-2px;border-radius:18px;background:var(--accent);opacity:.15;filter:blur(8px);animation:pulseGlow 3s linear infinite;transition:background .35s}
-/* 1인 기업 모드 ON — 가운데 ✦ 로고도 골드 럭셔리 톤 */
+/* 주식 관제실 모드 ON — 가운데 ✦ 로고도 골드 럭셔리 톤 */
 body.corp-on .welcome-logo{color:#FBBF24;border-color:rgba(251,191,36,.45);box-shadow:inset 0 0 15px rgba(251,191,36,.18), 0 0 36px rgba(251,191,36,.32);text-shadow:0 0 18px #FBBF24}
 body.corp-on .welcome-logo::before{background:#FBBF24}
 @keyframes pulseGlow{0%,100%{opacity:.15;filter:blur(8px)}50%{opacity:.3;filter:blur(12px)}}
@@ -299,7 +299,7 @@ body.init .input-wrap{max-width:680px;width:100%;margin:0 auto;transform:none;tr
 .msg-body pre .type{color:#ffcb6b}
 
 /* ============================================================
-   1인 기업 모드 — Agent Board
+   주식 관제실 모드 — Agent Board
    ============================================================ */
 /* Agent board: hidden by default. Click 👔 in the header to show the team.
    Once visible, click any character card to open that agent's panel.
@@ -1140,7 +1140,7 @@ body.corp-dispatching .corp-overlay{opacity:1;animation:overlayPulse 1.5s ease-o
 .brand-suffix:hover{background:rgba(0,255,65,.08)}
 
 /* ===========================================================================
-   v2.89.116 — Specialist Dock (1인 기업 모드 모델 오케스트레이션 인-라인)
+   v2.89.116 — Specialist Dock (주식 관제실 모드 모델 오케스트레이션 인-라인)
    ----------------------------------------------------------------------------
    일반 모드: 헤더의 #modelSel만 표시 (단일 드롭다운).
    기업 모드(body.corp-on): 헤더의 #modelSel 자리를 9명 specialist 카드 dock으로
@@ -1347,8 +1347,8 @@ body.corp-on .agent-dock::before{
 }
 
 </style></head><body class="init">
-<div class="header"><div class="header-left"><div class="logo">✦</div><span class="brand">Connect AI</span><span class="brand-suffix" id="brandSuffix"></span></div><div class="header-right"><select id="modelSel"></select><button class="ad-chip" id="adChip" type="button" data-expanded="false" title="specialist 모델 매핑 — 클릭해서 펼치기"><span class="adc-model" id="adcModel">…</span><span class="adc-caret">▾</span></button><button class="btn-icon" id="corporateBtn" title="AI 1인 기업 모드 (Solo Mode) — 나만의 에이전트 팀이 자동으로 일합니다 (현재: OFF)" style="opacity:0.5">👔</button><button class="btn-icon" id="brainBtn" title="내 지식 관리">🧠</button><button class="btn-icon" id="historyBtn" title="이전 대화 보기 — 새 대화를 시작해도 이전 대화는 자동 보관됩니다">📂</button><button class="btn-icon" id="newChatBtn" title="새 대화 시작 (이전 대화는 자동 보관)">+</button><div class="more-wrap"><button class="btn-icon" id="moreBtn" title="더보기">…</button><div class="more-menu" id="moreMenu" hidden><button class="more-item" id="internetBtn" title="DuckDuckGo로 웹 검색 — AI가 결과를 읽어와 답변에 반영">🌐 인터넷 검색</button><button class="more-item" id="thinkingBtn" title="AI의 사고 흐름을 별도 패널에 그래프로 시각화 (지식 노드 연결 표시)">🎬 Thinking 시각화</button><button class="more-item" id="skillLibBtn" title="에이전트 스킬·도구 카탈로그 — 내가 만든 것 + 기본 제공 모두 한 곳에서">🛠 내 스킬 라이브러리</button><button class="more-item" id="settingsBtn" title="모델·서버 주소·시스템 프롬프트·키 등 모든 설정">⚙️ 설정</button></div></div></div></div>
-<!-- v2.89.116 — 1인 기업 모드 specialist 모델 dock. 일반 모드에선 숨김.
+<div class="header"><div class="header-left"><div class="logo">✦</div><span class="brand">Hermes_AIOS</span><span class="brand-suffix" id="brandSuffix"></span></div><div class="header-right"><select id="modelSel"></select><button class="ad-chip" id="adChip" type="button" data-expanded="false" title="specialist 모델 매핑 — 클릭해서 펼치기"><span class="adc-model" id="adcModel">…</span><span class="adc-caret">▾</span></button><button class="btn-icon" id="corporateBtn" title="여의도 주식 관제실 모드 (Solo Mode) — Hermes_AIOS 운영팀이 자동으로 일합니다 (현재: OFF)" style="opacity:0.5">👔</button><button class="btn-icon" id="brainBtn" title="내 지식 관리">🧠</button><button class="btn-icon" id="historyBtn" title="이전 대화 보기 — 새 대화를 시작해도 이전 대화는 자동 보관됩니다">📂</button><button class="btn-icon" id="newChatBtn" title="새 대화 시작 (이전 대화는 자동 보관)">+</button><div class="more-wrap"><button class="btn-icon" id="moreBtn" title="더보기">…</button><div class="more-menu" id="moreMenu" hidden><button class="more-item" id="internetBtn" title="DuckDuckGo로 웹 검색 — AI가 결과를 읽어와 답변에 반영">🌐 인터넷 검색</button><button class="more-item" id="thinkingBtn" title="AI의 사고 흐름을 별도 패널에 그래프로 시각화 (지식 노드 연결 표시)">🎬 Thinking 시각화</button><button class="more-item" id="skillLibBtn" title="에이전트 스킬·도구 카탈로그 — 내가 만든 것 + 기본 제공 모두 한 곳에서">🛠 내 스킬 라이브러리</button><button class="more-item" id="settingsBtn" title="모델·서버 주소·시스템 프롬프트·키 등 모든 설정">⚙️ 설정</button></div></div></div></div>
+<!-- v2.89.116 — 주식 관제실 모드 specialist 모델 dock. 일반 모드에선 숨김.
      body.corp-on이 들어오면 헤더의 #modelSel 자리에서 9명 specialist의
      모델 매핑이 한 줄로 보이고, 클릭하면 인라인 popover로 변경. -->
 <div class="agent-dock" id="agentDock" data-open="false">
@@ -1372,7 +1372,7 @@ body.corp-on .agent-dock::before{
 <div class="agent-board" id="agentBoard">
   <button class="ab-head" id="abHead" type="button" title="팀 패널 접기/펼치기">
     <span class="ab-chevron" id="abChevron" aria-hidden="true">▾</span>
-    <span class="ab-title"><span id="abCompanyName">AI 1인 기업</span> <span class="ab-sub" id="abSub">— 나만의 에이전트 팀</span></span>
+    <span class="ab-title"><span id="abCompanyName">여의도 주식 관제실</span> <span class="ab-sub" id="abSub">— Hermes_AIOS 운영팀</span></span>
     <span class="ab-mini-strip" id="abMiniStrip" aria-hidden="true"></span>
     <span class="ab-folder" id="abFolder" title="🏢 오피스 드라이브 열람">📁 <span id="abFolderText">미설정</span></span>
   </button>
@@ -1417,8 +1417,8 @@ let _setupCompletionAnnounced=false;
 function welcomeHtml(){
   return '<div class="welcome"><div class="welcome-logo">✦</div>'
     + '<div class="ag-badge">⚡ Built for Antigravity</div>'
-    + '<div class="welcome-title">AI 1인 기업, 시작하세요</div>'
-    + '<div class="welcome-sub">나만의 AI 에이전트 팀과 제2의 두뇌가 한 곳에서.<br>100% 로컬·오프라인·무료 — 인터넷도 API 비용도 없이 내 PC에서.</div>'
+    + '<div class="welcome-title">여의도 주식 관제실, 시작하세요</div>'
+    + '<div class="welcome-sub">Hermes_AIOS 운영팀과 운영 아카이브가 한 곳에서.<br>한국 주식 자동매매 운영 보조 사무실.</div>'
     + '<div id="onboardRoot"></div>'
     + '</div>';
 }
@@ -1469,7 +1469,7 @@ function renderOnboarding(){
     +   (s.brain.path ? '<div class="onboard-result">📁 현재: <code>'+escapeHtml(s.brain.path)+'</code></div>' : '')
     + '</div>'
     + '<div class="onboard-actions">'
-    +   '<button class="onboard-btn" id="ob-pick-brain" title="제2의 두뇌 폴더 위치 직접 선택">📁 폴더 선택</button>'
+    +   '<button class="onboard-btn" id="ob-pick-brain" title="운영 아카이브 폴더 위치 직접 선택">📁 폴더 선택</button>'
     +   '<button class="onboard-btn secondary" id="ob-skip-brain" title="홈 디렉토리의 ~/.connect-ai-brain 사용">기본값 사용</button>'
     + '</div>';
   } else if (cur === 3) {
@@ -1499,7 +1499,7 @@ function renderOnboarding(){
     +   '• <code>오늘 일과 텔레그램으로 보고 (👔 기업 모드)</code>'
     + '</div>'
     + '<div class="onboard-actions">'
-    +   '<button class="onboard-btn" id="ob-finish" title="설정 완료, Connect AI 사용 시작">시작하기 ✦</button>'
+    +   '<button class="onboard-btn" id="ob-finish" title="설정 완료, Hermes_AIOS 사용 시작">시작하기 ✦</button>'
     + '</div>';
   }
   root.innerHTML =
@@ -1803,7 +1803,7 @@ function addMsg(text,role){
   const isUser=role==='user',isErr=role==='error';
   const el=document.createElement('div');el.className='msg'+(isUser?' msg-user':'')+(isErr?' msg-error':'');
   const head=document.createElement('div');head.className='msg-head';
-  head.innerHTML=(isUser?'<div class="av av-user">👤</div><span>You</span>':'<div class="av av-ai">✦</div><span>Connect AI</span>')+'<span class="msg-time">'+getTime()+'</span>';
+  head.innerHTML=(isUser?'<div class="av av-user">👤</div><span>You</span>':'<div class="av av-ai">✦</div><span>Hermes_AIOS</span>')+'<span class="msg-time">'+getTime()+'</span>';
   const body=document.createElement('div');body.className='msg-body';
   if(isUser){body.innerText=text}else{body.innerHTML=fmt(text)}
   el.appendChild(head);el.appendChild(body);chat.appendChild(el);scrollChatToBottomIfNear();
@@ -1843,7 +1843,7 @@ function showSkillCard(payload){
 /* v2.89.99 — 멀티 단계 매트릭스 로더. 단계별로 터미널 스타일 마커가
    pending(◌) → active(▸) → done(✓) 로 전환. 활성 단계만 그린 펄스, 진행 막대 +
    경과 시간 표시. 절대 산만하지 않게 — 명료한 단일 정보 채널. */
-/* v2.89.100 — 일반 채팅 vs 1인 기업 모드별로 다른 단계 라벨. 같은 비주얼 언어,
+/* v2.89.100 — 일반 채팅 vs 주식 관제실 모드별로 다른 단계 라벨. 같은 비주얼 언어,
    다른 카피. 사용자가 "지금 어디까지 왔는지" 한눈에 알 수 있게. */
 const LOADING_PHASES_CHAT=[
   '워크스페이스 스캔',
@@ -1877,7 +1877,7 @@ function showLoader(){
     '</div>'
   )).join('');
   loader.innerHTML=
-    '<div class="msg-head"><div class="av av-ai">✦</div><span>Connect AI</span><span class="msg-time">'+getTime()+'</span></div>'+
+    '<div class="msg-head"><div class="av av-ai">✦</div><span>Hermes_AIOS</span><span class="msg-time">'+getTime()+'</span></div>'+
     '<div class="ml-loader">'+
       '<div class="ml-head"><span class="ml-head-dot"></span><span>NEURAL CORE · ACTIVE</span><span class="ml-head-bar"></span><span class="ml-head-spinner"></span></div>'+
       '<div class="ml-steps" id="mlSteps">'+stepsHtml+'</div>'+
@@ -2355,15 +2355,15 @@ vscode.postMessage({type:'requestStatus'});
 setInterval(()=>vscode.postMessage({type:'requestStatus'}), 30000);
 stopBtn.addEventListener('click',()=>{vscode.postMessage({type:'stopGeneration'});hideLoader();setSending(false);if(streamBody){streamBody.classList.remove('stream-active')}streamEl=null;streamBody=null;});
 
-/* ===== 1인 기업 모드 ===== */
+/* ===== 주식 관제실 모드 ===== */
 function applyCorporateMode(on){
   corporateMode=on;
   document.body.classList.toggle('corp-on',on);
   corporateBtn.style.opacity=on?'1':'0.5';
-  /* 1인 기업 모드 ON = 골드 럭셔리 톤. 메인 앱의 --accent는 형광 녹색이라
+  /* 주식 관제실 모드 ON = 골드 럭셔리 톤. 메인 앱의 --accent는 형광 녹색이라
      컨셉(럭셔리 골드)과 안 맞아서 명시적으로 골드 그라디언트 사용. */
   corporateBtn.style.background=on?'linear-gradient(135deg,#FBBF24,#F59E0B)':'';
-  corporateBtn.title='AI 1인 기업 모드 (Solo Mode) — '+(on?'ON':'OFF (클릭해서 켜기)');
+  corporateBtn.title='여의도 주식 관제실 모드 (Solo Mode) — '+(on?'ON':'OFF (클릭해서 켜기)');
   input.placeholder=on?'한 줄 명령을 내리세요. 팀이 알아서 일합니다.':'무엇을 만들어 드릴까요?';
   /* Tell extension so autonomous corp activity is gated out of the sidebar
      while OFF. Office panel + conversation log keep recording either way. */
@@ -2380,7 +2380,7 @@ function applyCorporateMode(on){
 }
 
 /* ========================================================================
-   v2.89.116 — Specialist Dock (1인 기업 모드 전용)
+   v2.89.116 — Specialist Dock (주식 관제실 모드 전용)
    ------------------------------------------------------------------------
    기업 모드일 때 헤더 단일 모델 셀렉터를 9명 specialist의 미니 카드 줄로
    대체. 카드 클릭 → 인라인 popover (검색 + 모델 list + memory-safe 표시).
@@ -3861,8 +3861,8 @@ function showOnboardingCard(){
   bootSetContent(
     '<div class="boot-head">'
     +   '<div class="boot-tag"><span class="boot-tag-dot"></span>SYSTEM BOOT · STAGE 1 / 3</div>'
-    +   '<div class="boot-h1"><span class="accent">AI 1인 기업</span>, 시작합니다<br><span style="font-size:.55em;font-weight:500;color:var(--text-dim);letter-spacing:0">나만의 에이전트 팀 · 제2의 두뇌</span></div>'
-    +   '<div class="boot-sub">회사 폴더 = 제2의 두뇌입니다. 지식·메모리·에이전트 산출물·의사결정 로그가 모두 한 곳에 쌓이고, GitHub로 백업하면 다른 PC에서도 그대로 이어갈 수 있어요.</div>'
+    +   '<div class="boot-h1"><span class="accent">여의도 주식 관제실</span>, 시작합니다<br><span style="font-size:.55em;font-weight:500;color:var(--text-dim);letter-spacing:0">Hermes_AIOS 운영팀 · 운영 아카이브</span></div>'
+    +   '<div class="boot-sub">회사 폴더 = 운영 아카이브입니다. 지식·메모리·에이전트 산출물·의사결정 로그가 모두 한 곳에 쌓이고, GitHub로 백업하면 다른 PC에서도 그대로 이어갈 수 있어요.</div>'
     + '</div>'
     + '<div class="boot-body">'
     +   '<div class="boot-options">'
@@ -4247,18 +4247,18 @@ function applyCompanyState(s){
     const root=document.getElementById('onboardRoot');if(root)root.innerHTML='';
     try{vscode.postMessage({type:'dismissOnboarding'});}catch{}
   }
-  /* 헤더 — 기업 모드일 때 회사명 OR "1인 기업" fallback 뱃지 */
+  /* 헤더 — 기업 모드일 때 회사명 OR "주식 관제실" fallback 뱃지 */
   if(brandSuffix){
     if(companyState.name){
       brandSuffix.textContent='👔 '+companyState.name;
       brandSuffix.classList.add('has-name');
     } else {
-      brandSuffix.textContent='👔 1인 기업';
+      brandSuffix.textContent='👔 주식 관제실';
       brandSuffix.classList.remove('has-name');
     }
   }
   /* 에이전트 보드 헤더 */
-  if(abCompanyName)abCompanyName.textContent=companyState.name||'AI 1인 기업';
+  if(abCompanyName)abCompanyName.textContent=companyState.name||'여의도 주식 관제실';
   if(abFolderText)abFolderText.textContent=companyState.dir||'미설정';
 }
 abFolder.addEventListener('click',(e)=>{e.stopPropagation();vscode.postMessage({type:'openCompanyFolder'});});
@@ -4656,16 +4656,16 @@ window.addEventListener('message',e=>{const msg=e.data;switch(msg.type){
     /* Diagnostic: tell user what host-IDE models are reachable via vscode.lm.
        Logged to console + a one-time inline notice if any external model exists. */
     try {
-      console.log('[Connect AI] vscode.lm probe — models:', msg.models, 'error:', msg.error);
+      console.log('[Hermes_AIOS] vscode.lm probe — models:', msg.models, 'error:', msg.error);
       if (msg.error) {
-        console.log('[Connect AI] IDE 모델 probe 실패:', msg.error);
+        console.log('[Hermes_AIOS] IDE 모델 probe 실패:', msg.error);
       } else if (Array.isArray(msg.models) && msg.models.length > 0) {
         const summary = msg.models.map(m => '• ' + (m.vendor||'?') + ' / ' + (m.family||'?') + ' (' + m.id + ')').join('\n');
         const el = document.createElement('div'); el.className='msg';
         el.innerHTML = '<div class="msg-body" style="color:#22D3EE;font-size:12px;line-height:1.6;background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.3);padding:10px 12px;border-radius:8px"><strong>🌐 IDE가 익스텐션에 노출하는 모델 ' + msg.models.length + '개:</strong><br>' + summary.replace(/\n/g, '<br>') + '<br><br><span style="color:var(--text-dim);font-size:11px">→ 통합하면 Gemini/Claude 등 호스트 모델을 모델 드롭다운에 추가할 수 있습니다 (개발자에게 요청 필요)</span></div>';
         chat.appendChild(el); scrollChatToBottomIfNear();
       } else {
-        console.log('[Connect AI] IDE 모델 probe — 노출되는 모델 없음. Antigravity가 vscode.lm으로 모델을 안 열어주는 것으로 추정.');
+        console.log('[Hermes_AIOS] IDE 모델 probe — 노출되는 모델 없음. Antigravity가 vscode.lm으로 모델을 안 열어주는 것으로 추정.');
       }
     } catch {}
     break;
@@ -4716,9 +4716,9 @@ window.addEventListener('message',e=>{const msg=e.data;switch(msg.type){
     document.body.classList.toggle('corp-on',officeOpen);
     if(corporateBtn){
       corporateBtn.style.opacity=officeOpen?'1':'0.5';
-      /* 골드 럭셔리 톤 통일 (1인 기업) */
+      /* 골드 럭셔리 톤 통일 (주식 관제실) */
       corporateBtn.style.background=officeOpen?'linear-gradient(135deg,#FBBF24,#F59E0B)':'';
-      corporateBtn.title=officeOpen?'AI 1인 기업 모드 (Solo Mode) — 사무실 열림 (클릭해서 닫기)':'AI 1인 기업 모드 (Solo Mode) — OFF (클릭해서 사무실 열기)';
+      corporateBtn.title=officeOpen?'여의도 주식 관제실 모드 (Solo Mode) — 사무실 열림 (클릭해서 닫기)':'여의도 주식 관제실 모드 (Solo Mode) — OFF (클릭해서 사무실 열기)';
     }
     if(input)input.placeholder=officeOpen?'한 줄 명령을 내리세요. 팀이 알아서 일합니다.':'무엇을 만들어 드릴까요?';
     break;
@@ -4731,7 +4731,7 @@ window.addEventListener('message',e=>{const msg=e.data;switch(msg.type){
        reasoning)은 첫 토큰까지 — 그래서 첫 토큰 도착할 때까지 로더 유지. */
     streamEl=document.createElement('div');streamEl.className='msg';
     const h=document.createElement('div');h.className='msg-head';
-    h.innerHTML='<div class="av av-ai">✦</div><span>Connect AI</span><span class="msg-time">'+getTime()+'</span>';
+    h.innerHTML='<div class="av av-ai">✦</div><span>Hermes_AIOS</span><span class="msg-time">'+getTime()+'</span>';
     streamBody=document.createElement('div');streamBody.className='msg-body stream-active';
     streamEl.appendChild(h);streamEl.appendChild(streamBody);chat.appendChild(streamEl);
     /* streamEl을 미리 만들어두지만 첫 청크 전엔 숨겨둠 — 빈 메시지 박스가 로더 위/아래에
