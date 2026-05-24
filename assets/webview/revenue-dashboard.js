@@ -195,7 +195,15 @@ function renderInvestorFlow(flow) {
     return;
   }
 
-  box.innerHTML = flow.top_real_themes.slice(0, 6).map(t => {
+  const sortedThemes = [...flow.top_real_themes].sort((a, b) => {
+    const at = String(a.theme || '');
+    const bt = String(b.theme || '');
+    if (at === '미분류' && bt !== '미분류') return 1;
+    if (bt === '미분류' && at !== '미분류') return -1;
+    return Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0));
+  });
+
+  box.innerHTML = sortedThemes.slice(0, 6).map(t => {
     const sum = Number(t.sum_est_qty || 0);
     const clsColor = sum > 0 ? '#67e8f9' : (sum < 0 ? '#fb7185' : '#fbbf24');
     const sign = sum > 0 ? '+' : '';
