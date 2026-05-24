@@ -1082,6 +1082,62 @@ function updateCompanyMetrics(updates: any) {
     }
 }
 
+
+function _readHermesPerformanceMiniData(): any {
+    try {
+        const summaryPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/performance_summary.json';
+        if (!fs.existsSync(summaryPath)) {
+            return { error: 'performance_summary.json 없음 — Performance Manager 실행 필요' };
+        }
+
+        const s = JSON.parse(fs.readFileSync(summaryPath, 'utf-8') || '{}');
+
+        const today = s.today || {};
+        const seven = s.last_7_days || {};
+        const month = s.month_to_date || {};
+        const thirty = s.last_30_days || {};
+
+        const num = (v: any) => {
+            const n = Number(v || 0);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        return {
+            success: true,
+            source: 'performance_summary.json',
+            hermesPerformance: true,
+            totals: {
+                by_period: {
+                    today: num(today.pnl),
+                    week: num(seven.pnl),
+                    month: num(month.pnl),
+                    thirty: num(thirty.pnl)
+                },
+                by_currency: {
+                    KRW: {
+                        gross: num(thirty.pnl),
+                        count: num(thirty.trade_count)
+                    }
+                }
+            },
+            performance: {
+                today_return_pct: num(today.return_pct),
+                seven_day_return_pct: num(seven.return_pct),
+                month_return_pct: num(month.return_pct),
+                thirty_day_return_pct: num(thirty.return_pct),
+                win_rate_pct: num(thirty.win_rate_pct),
+                stop_losses: num(thirty.stop_losses),
+                take_profits: num(thirty.take_profits),
+                intraday_flats: num(thirty.intraday_flats)
+            },
+            by_day: {}
+        };
+    } catch (e: any) {
+        return { error: 'Hermes 성과 데이터 파싱 실패: ' + (e?.message || String(e)) };
+    }
+}
+
+
 function _extractCompanyName(idMd: string): string {
   const m = idMd.match(/회사\s*이름\s*[:：]\s*(.+)/);
   if (!m || !m[1]) return '';
@@ -10710,43 +10766,9 @@ class CompanyDashboardPanel {
                         }
                     } catch { /* ignore */ }
                 } else if (msg?.type === 'requestRevenueMini') {
-                    /* v2.89.142 — 회사 대시보드의 미니 매출 위젯 데이터 요청.
-                       paypal_revenue.py OUTPUT=json 로 실행 → 응답을 webview 에 회신. */
-                    try {
-                        const ppToolDir = path.join(getCompanyDir(), '_agents', 'business', 'tools');
-                        const ppScript = path.join(ppToolDir, 'paypal_revenue.py');
-                        const ppJson = path.join(ppToolDir, 'paypal_revenue.json');
-                        if (!fs.existsSync(ppScript) || !fs.existsSync(ppJson)) {
-                            this._panel.webview.postMessage({ type: 'revenueMini', data: { error: 'PayPal 미설정 — 외부 연결 패널에서 입력하세요' } });
-                            return;
-                        }
-                        const cfg = JSON.parse(_safeReadText(ppJson) || '{}');
-                        if (!cfg.CLIENT_ID || !cfg.CLIENT_SECRET) {
-                            this._panel.webview.postMessage({ type: 'revenueMini', data: null });
-                            return;
-                        }
-                        const env = { ...process.env, OUTPUT: 'json', LOOKBACK_DAYS: '30' };
-                        const r = await new Promise<{ exitCode: number; output: string }>((resolve) => {
-                            const cp = require('child_process');
-                            const p = cp.spawn(_pythonCmd(), [ppScript], { cwd: ppToolDir, env });
-                            let out = '';
-                            p.stdout?.on('data', (d: Buffer) => { out += d.toString(); });
-                            p.on('close', (code: number) => resolve({ exitCode: code, output: out }));
-                            setTimeout(() => { try { p.kill(); } catch {} resolve({ exitCode: -1, output: out }); }, 18000);
-                        });
-                        if (r.exitCode !== 0 || !r.output) {
-                            this._panel.webview.postMessage({ type: 'revenueMini', data: { error: 'PayPal 호출 실패 — 권한·자격증명 확인' } });
-                            return;
-                        }
-                        let data: any;
-                        try { data = JSON.parse(r.output); } catch {
-                            this._panel.webview.postMessage({ type: 'revenueMini', data: { error: '응답 파싱 실패' } });
-                            return;
-                        }
-                        this._panel.webview.postMessage({ type: 'revenueMini', data });
-                    } catch (e: any) {
-                        this._panel.webview.postMessage({ type: 'revenueMini', data: { error: e?.message || String(e) } });
-                    }
+                    /* Hermes Performance Mini — performance_summary.json 직접 읽기 */
+                    const data = _readHermesPerformanceMiniData();
+                    this._panel.webview.postMessage({ type: 'revenueMini', data });
                 } else if (msg?.type === 'setAgentActive' && msg.agent) {
                     /* v2.89.107 — 활성/비활성 토글. PIN 안 받음 (Luna는 별도 hireAgent). */
                     const aid = String(msg.agent || '').trim();
@@ -12607,42 +12629,9 @@ class OfficePanel {
                     break;
                 }
                 case 'requestRevenueMini': {
-                    /* v2.89.143 — 사무실 우상단 HUD 데이터 요청. paypal_revenue.py OUTPUT=json. */
-                    try {
-                        const ppToolDir = path.join(getCompanyDir(), '_agents', 'business', 'tools');
-                        const ppScript = path.join(ppToolDir, 'paypal_revenue.py');
-                        const ppJson = path.join(ppToolDir, 'paypal_revenue.json');
-                        if (!fs.existsSync(ppScript) || !fs.existsSync(ppJson)) {
-                            panel.webview.postMessage({ type: 'revenueMini', data: { error: 'PayPal 미설정' } });
-                            break;
-                        }
-                        const cfg = JSON.parse(_safeReadText(ppJson) || '{}');
-                        if (!cfg.CLIENT_ID || !cfg.CLIENT_SECRET) {
-                            panel.webview.postMessage({ type: 'revenueMini', data: null });
-                            break;
-                        }
-                        const env = { ...process.env, OUTPUT: 'json', LOOKBACK_DAYS: '30' };
-                        const r = await new Promise<{ exitCode: number; output: string }>((resolve) => {
-                            const cp = require('child_process');
-                            const p = cp.spawn(_pythonCmd(), [ppScript], { cwd: ppToolDir, env });
-                            let out = '';
-                            p.stdout?.on('data', (d: Buffer) => { out += d.toString(); });
-                            p.on('close', (code: number) => resolve({ exitCode: code, output: out }));
-                            setTimeout(() => { try { p.kill(); } catch {} resolve({ exitCode: -1, output: out }); }, 18000);
-                        });
-                        if (r.exitCode !== 0 || !r.output) {
-                            panel.webview.postMessage({ type: 'revenueMini', data: { error: 'PayPal 호출 실패' } });
-                            break;
-                        }
-                        try {
-                            const data = JSON.parse(r.output);
-                            panel.webview.postMessage({ type: 'revenueMini', data });
-                        } catch {
-                            panel.webview.postMessage({ type: 'revenueMini', data: { error: '응답 파싱 실패' } });
-                        }
-                    } catch (e: any) {
-                        panel.webview.postMessage({ type: 'revenueMini', data: { error: e?.message || String(e) } });
-                    }
+                    /* Hermes Performance Mini — performance_summary.json 직접 읽기 */
+                    const data = _readHermesPerformanceMiniData();
+                    panel.webview.postMessage({ type: 'revenueMini', data });
                     break;
                 }
                 case 'officePrompt': {

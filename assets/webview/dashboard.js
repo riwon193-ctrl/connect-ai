@@ -1271,8 +1271,12 @@ function _renderRevenueMini(data) {
 
   /* skeleton 제거 */
   card.querySelectorAll('.rev-skeleton').forEach(el => el.classList.remove('rev-skeleton'));
+  const perf = data.performance || {};
+  const pctText = (perf.thirty_day_return_pct !== undefined)
+    ? ' · 30일 ' + Number(perf.thirty_day_return_pct || 0).toFixed(3) + '%'
+    : '';
   document.getElementById('revSubtitle').textContent =
-    primaryCur + ' 매매 성과 분석 · ' + cur.count + '건 거래 · 클릭 → 풀스크린';
+    'Hermes 매매 성과 분석 · ' + cur.count + '건 거래' + pctText + ' · 클릭 → 풀스크린';
 
   _animateNum(document.getElementById('revMonth'), period.month || 0, {
     formatter: (v) => primaryCur === 'USD' ? '$' + _fmtRevAmount(v) : _fmtRevAmount(v) + ' ' + primaryCur
