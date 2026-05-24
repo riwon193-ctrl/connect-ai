@@ -1179,6 +1179,76 @@ function _readHermesMarketView(): any {
 }
 
 
+
+function _readHermesInvestorFlow(): any {
+    try {
+        const flowPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/investor_flow_report.json';
+        if (!fs.existsSync(flowPath)) return null;
+
+        const f = JSON.parse(fs.readFileSync(flowPath, 'utf-8') || '{}');
+
+        let themes: any[] = Array.isArray(f.top_real_themes) ? f.top_real_themes : [];
+
+        /* 최신 구조 fallback: real_flow.rows 를 테마별로 직접 집계 */
+        if ((!themes || themes.length === 0) && Array.isArray(f?.real_flow?.rows)) {
+            const byTheme: Record<string, any> = {};
+
+            for (const r of f.real_flow.rows) {
+                const tags = Array.isArray(r.theme_tags) && r.theme_tags.length ? r.theme_tags : ['미분류'];
+
+                for (const tag of tags) {
+                    const theme = String(tag || '미분류');
+                    if (!byTheme[theme]) {
+                        byTheme[theme] = {
+                            theme,
+                            stock_count: 0,
+                            foreign_est_qty: 0,
+                            institution_est_qty: 0,
+                            sum_est_qty: 0,
+                            stocks: []
+                        };
+                    }
+
+                    byTheme[theme].stock_count += 1;
+                    byTheme[theme].foreign_est_qty += Number(r.foreign_est_qty || 0);
+                    byTheme[theme].institution_est_qty += Number(r.institution_est_qty || 0);
+                    byTheme[theme].sum_est_qty += Number(r.sum_est_qty || 0);
+
+                    if (byTheme[theme].stocks.length < 3) {
+                        byTheme[theme].stocks.push({
+                            ticker: String(r.ticker || ''),
+                            name: String(r.name || ''),
+                            sum_est_qty: Number(r.sum_est_qty || 0)
+                        });
+                    }
+                }
+            }
+
+            themes = Object.values(byTheme).sort((a: any, b: any) =>
+                Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0))
+            );
+        }
+
+        return {
+            date: String(f.date || ''),
+            created_at: String(f.created_at || ''),
+            data_status: String(f.data_status || ''),
+            market_context: f.market_context || {},
+            top_real_themes: themes.slice(0, 6).map((t: any) => ({
+                theme: String(t.theme || '미분류'),
+                stock_count: Number(t.stock_count || 0),
+                foreign_est_qty: Number(t.foreign_est_qty || 0),
+                institution_est_qty: Number(t.institution_est_qty || 0),
+                sum_est_qty: Number(t.sum_est_qty || 0),
+                stocks: Array.isArray(t.stocks) ? t.stocks.slice(0, 3) : []
+            }))
+        };
+    } catch {
+        return null;
+    }
+}
+
+
 function _readHermesPerformanceMiniData(): any {
     try {
         const summaryPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/performance_summary.json';
@@ -1200,6 +1270,7 @@ function _readHermesPerformanceMiniData(): any {
 
         const detail = _readHermesTradeDetails();
         const marketView = _readHermesMarketView();
+        const investorFlow = _readHermesInvestorFlow();
 
         return {
             success: true,
@@ -1232,7 +1303,8 @@ function _readHermesPerformanceMiniData(): any {
             by_day: detail.by_day || {},
             by_project: detail.by_project || {},
             transactions: detail.transactions || [],
-            market_view: marketView
+            market_view: marketView,
+            investor_flow: investorFlow
         };
     } catch (e: any) {
         return { error: 'Hermes 성과 데이터 파싱 실패: ' + (e?.message || String(e)) };
@@ -12375,6 +12447,16 @@ class RevenueDashboardPanel {
             <div id="marketViewRationale" style="font-size:.78rem;color:#94a3b8;line-height:1.5;">market_view.json 대기 중</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investor flow row -->
+  <div class="row" style="margin-top: 20px;">
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="section">
+        <h2>외국인·기관 수급</h2>
+        <div id="investorFlowBox" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;"></div>
       </div>
     </div>
   </div>

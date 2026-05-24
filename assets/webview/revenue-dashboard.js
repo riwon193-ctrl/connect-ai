@@ -66,6 +66,46 @@ function countUp(el, target, opts = {}) {
 }
 
 
+
+function renderInvestorFlow(flow) {
+  const box = $('investorFlowBox');
+  if (!box) return;
+
+  if (!flow || !Array.isArray(flow.top_real_themes) || flow.top_real_themes.length === 0) {
+    box.innerHTML = '<div style="color:var(--text-3);font-size:.9rem;">investor_flow_report.json 대기 중</div>';
+    return;
+  }
+
+  box.innerHTML = flow.top_real_themes.slice(0, 6).map(t => {
+    const sum = Number(t.sum_est_qty || 0);
+    const clsColor = sum >= 0 ? '#67e8f9' : '#fb7185';
+    const sign = sum > 0 ? '+' : '';
+    const stocks = Array.isArray(t.stocks)
+      ? t.stocks.slice(0, 2).map(s => esc(s.name || s.ticker || '')).filter(Boolean).join(' · ')
+      : '';
+
+    return `<div style="
+      border:1px solid rgba(103,232,249,.22);
+      background:rgba(15,23,42,.46);
+      border-radius:16px;
+      padding:14px 16px;
+      min-height:92px;
+      box-shadow:inset 0 0 18px rgba(34,211,238,.05);
+    ">
+      <div style="font-size:.82rem;color:#94a3b8;margin-bottom:6px;">${esc(t.theme)}</div>
+      <div style="font-size:1.35rem;font-weight:1000;color:${clsColor};text-shadow:0 0 10px ${clsColor};">
+        ${sign}${Math.round(sum).toLocaleString('ko-KR')}
+      </div>
+      <div style="font-size:.72rem;color:#64748b;margin-top:6px;">
+        외 ${Math.round(Number(t.foreign_est_qty || 0)).toLocaleString('ko-KR')}
+        · 기 ${Math.round(Number(t.institution_est_qty || 0)).toLocaleString('ko-KR')}
+      </div>
+      <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">${stocks || '종목 없음'}</div>
+    </div>`;
+  }).join('');
+}
+
+
 function renderMarketView(view) {
   const badge = $('marketViewBadge');
   const sectors = $('marketViewSectors');
@@ -354,6 +394,7 @@ function render(state) {
 
   const primaryCur = renderKPI(data);
   renderMarketView(data.market_view || null);
+  renderInvestorFlow(data.investor_flow || null);
   renderSparkline(data.by_day || {}, primaryCur);
   renderDonut(data.by_project || {}, primaryCur);
   renderProjectBars(data.by_project || {});
