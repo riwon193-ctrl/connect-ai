@@ -20174,6 +20174,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 }
             }
             const koreanAlias: Record<string, string> = {
+                // legacy labels
                 '유튜브': 'youtube', '인스타': 'instagram', '인스타그램': 'instagram',
                 '디자이너': 'designer', '디자인': 'designer',
                 '개발자': 'developer', '개발': 'developer',
@@ -20182,6 +20183,21 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
                 '편집자': 'editor', '편집': 'editor',
                 '작가': 'writer', '카피라이터': 'writer',
                 '리서처': 'researcher', '연구원': 'researcher', '리서치': 'researcher',
+
+                // Hermes_AIOS Korean office titles
+                '총괄실장': 'ceo',
+                '시황영상관': 'youtube',
+                '기록채널': 'instagram',
+                '디자인실': 'designer',
+                '공무팀': 'developer',
+                '성과관리관': 'business',
+                '비서실장': 'secretary',
+                '보안기록실': 'editor',
+                '보고관': 'writer',
+                '수급탐정': 'researcher',
+                '위험관리관': 'risk_manager',
+                '리스크관리관': 'risk_manager',
+                '리스크관리실': 'risk_manager',
             };
             const originalTasks = [...plan.tasks];
             plan.tasks = plan.tasks

@@ -1852,7 +1852,7 @@ const LOADING_PHASES_CHAT=[
   '응답 생성'
 ];
 const LOADING_PHASES_CORP=[
-  'CEO 작업 분해',
+  '총괄실장 작업 분해',
   '에이전트 배정',
   '실행 중',
   '최종 보고 작성'
@@ -1960,7 +1960,7 @@ function send(opts){
   addMsg(displayText,'user');
   input.value='';input.style.height='auto';setSending(true);
   /* v2.89.100 — corp 모드에서도 로더 띄움. 카드 보드가 펄스로 시각화하긴 하지만
-     CEO 단계에서 시간이 길어지면 사용자에게 "뭐 일어나고 있는지" 단일 정보 채널이
+     총괄실장 단계에서 시간이 길어지면 사용자에게 "뭐 일어나고 있는지" 단일 정보 채널이
      필요. 매트릭스 4단계 로더가 그 역할 — 카드 보드와 병행해도 시각적으로 안 부딪힘. */
   showLoader();
   if(pendingFiles.length>0){
@@ -2907,7 +2907,7 @@ function _showAgentPanelInner(agent){
       + '<div class="ap-locked-banner"><span class="ap-locked-banner-dot"></span>Coming Soon</div>'
       + '<div class="ap-locked-msg">곧 합류합니다</div>'
       + '<div class="ap-locked-sub">'+esc(agent.name)+' 에이전트의 전용 설정과 도구는 다음 업데이트에서 풀려요.</div>'
-      + '<div class="ap-locked-tip">💡 지금은 <strong>CEO 에이전트</strong>가 명령을 받아 작업을 분해·분배하는 단계예요. 전문 에이전트들의 개별 도구는 다음 업데이트에서 풀립니다.</div>'
+      + '<div class="ap-locked-tip">💡 지금은 <strong>총괄실장</strong>가 명령을 받아 작업을 분해·분배하는 단계예요. 전문 에이전트들의 개별 도구는 다음 업데이트에서 풀립니다.</div>'
       + '</div>';
   }
 
@@ -3905,7 +3905,7 @@ function showInterviewCard(){
 }
 const _BOOT_STEPS = [
   { tag:'STAGE 2 / 3 · STEP 1', h1:'당신의 <span class="accent">정체성</span>을 알려주세요',
-    sub:'CEO와 모든 에이전트가 이 정보를 보고 일합니다. 비워둬도 OK — 나중에 "👔 회사명" 뱃지에서 언제든 수정할 수 있어요.',
+    sub:'총괄실장과 모든 에이전트가 이 정보를 보고 일합니다. 비워둬도 OK — 나중에 "👔 회사명" 뱃지에서 언제든 수정할 수 있어요.',
     fields:[
       { key:'name',     emoji:'🏢', label:'회사·브랜드 이름', placeholder:'예: 제이코프 / 1인 크리에이터' },
       { key:'oneLiner', emoji:'💬', label:'한 줄로 뭐 하시는 분이세요?', placeholder:'예: 자기계발 콘텐츠 만드는 1인 크리에이터' },
@@ -3918,7 +3918,7 @@ const _BOOT_STEPS = [
       { key:'goalMonth', emoji:'📅', label:'이번 달 안에 끝낼 목표 1개', placeholder:'예: 영상 4편 업로드 + 댓글 패턴 정리' },
     ]},
   { tag:'STAGE 2 / 3 · STEP 3', h1:'지금 <span class="accent">가장 필요한 것</span>은?',
-    sub:'시간 / 돈 / 사람 / 툴 / 지식 — 무엇이든. CEO가 이 정보를 보고 어떤 에이전트에게 어떤 작업을 분배할지 우선순위를 정합니다.',
+    sub:'시간 / 돈 / 사람 / 툴 / 지식 — 무엇이든. 총괄실장이 이 정보를 보고 어떤 에이전트에게 어떤 작업을 분배할지 우선순위를 정합니다.',
     fields:[
       { key:'needs', emoji:'🆘', textarea:true, label:'필요한 것을 자유롭게', placeholder:'예: 썸네일 디자인에 시간이 너무 오래 걸려서 자동화가 필요합니다. 그리고 매주 3편을 안정적으로 업로드할 콘텐츠 파이프라인이 부족해요.' },
     ]},
@@ -4071,7 +4071,7 @@ function bootRenderTeamReveal(){
     setTimeout(bootRenderTeamReveal, 200);
     return;
   }
-  /* CEO first, then the rest in role order. */
+  /* 총괄실장 first, then the rest in role order. */
   agents = agents.slice().sort((a,b)=>{
     if(a.id==='ceo') return -1;
     if(b.id==='ceo') return 1;
@@ -4095,7 +4095,7 @@ function bootRenderTeamReveal(){
     '<div class="boot-head">'
     +   '<div class="boot-tag"><span class="boot-tag-dot"></span>STAGE 3 / 3 · TEAM ASSEMBLY</div>'
     +   '<div class="boot-h1"><span class="accent">' + esc(companyName) + '</span>의<br>팀이 자리를 잡았습니다</div>'
-    +   '<div class="boot-sub">CEO가 회사 목표를 읽고 적절한 에이전트에게 작업을 분배합니다. 24시간 업무 모드를 켜두면 자리를 비울 때도 자동으로 일해요.</div>'
+    +   '<div class="boot-sub">총괄실장이 회사 목표를 읽고 적절한 에이전트에게 작업을 분배합니다. 24시간 업무 모드를 켜두면 자리를 비울 때도 자동으로 일해요.</div>'
     + '</div>'
     + '<div class="boot-body">'
     +   '<div class="boot-team-status" id="bootTeamStatus">팀 합류 중…</div>'
@@ -4305,7 +4305,7 @@ let agentMiniDotEls={};
    두 화면 (사이드바·대쉬보드) 어디서든 같은 정보를 봄. */
 const LOCKED_AGENTS = { editor: true };  /* 사운드 디렉터(editor=루나) — PIN 게이트 */
 /* v2.89.110 — 자율성 + 합리적 기본값:
-   - ALWAYS_ON (1명): CEO 시스템 필수
+   - ALWAYS_ON (1명): 총괄실장 시스템 필수
    - DEFAULT_ON (4명): 새 사용자 첫 진입 시 자동 활성화 (사용자 OFF 가능)
    - OPTIONAL (4명): 기본 비활성, opt-in
    - LOCKED (1명): Luna PIN
@@ -4378,7 +4378,7 @@ function renderAgentBoard(agents,companyDir){
       if (LOCKED_AGENTS[a.id] && !isAgentHired(a.id)) {
         openHirePin(a);
       } else if (OPTIONAL_AGENTS.has(a.id) && !isAgentActive(a.id)) {
-        if (confirm(`${a.emoji} ${a.name}\n\n이 에이전트를 활성화할까요?\nCEO가 작업 분배 시 호출할 수 있습니다.\n언제든 다시 비활성화 가능.`)) {
+        if (confirm(`${a.emoji} ${a.name}\n\n이 에이전트를 활성화할까요?\n총괄실장이 작업 분배 시 호출할 수 있습니다.\n언제든 다시 비활성화 가능.`)) {
           vscode.postMessage({ type:'setAgentActive', agent: a.id, active: true });
         }
       } else {
@@ -4512,7 +4512,7 @@ function openHirePin(agent){
 
 function setCardState(agent,state,task){
   const c=agentCardEls[agent];if(!c)return;
-  /* v2.89.95 — 잠긴 카드는 상태 변경 무시 (CEO가 dispatch 시도해도 시각 변화 없음) */
+  /* v2.89.95 — 잠긴 카드는 상태 변경 무시 (총괄실장이 dispatch 시도해도 시각 변화 없음) */
   if(c.classList.contains('locked')) return;
   c.classList.remove('idle','thinking','working','done');
   c.classList.add(state);
@@ -4625,14 +4625,14 @@ function showBriefCard(brief,tasks){
     const a=agentMap[t.agent];if(!a)return;
     tasksHtml+='<div class="brief-task" style="--ag-color:'+a.color+';animation-delay:'+(0.1+i*0.08)+'s"><span class="bt-emoji">'+a.emoji+'</span><span class="bt-name">'+a.name+'</span><span class="bt-text">'+esc(t.task)+'</span></div>';
   });
-  el.innerHTML='<div class="brief-head">CEO · DISPATCH PROTOCOL</div><div class="brief-text">'+esc(brief)+'</div><div class="brief-tasks">'+tasksHtml+'</div>';
+  el.innerHTML='<div class="brief-head">총괄실장 · DISPATCH PROTOCOL</div><div class="brief-text">'+esc(brief)+'</div><div class="brief-tasks">'+tasksHtml+'</div>';
   chat.appendChild(el);scrollChatToBottomIfNear();
 }
 
 function showReportCard(brief,report,sessionPath,sessionRel){
   leaveInitState();
   const el=document.createElement('div');el.className='report-card';
-  el.innerHTML='<div class="report-head"><span>📝 CEO · 종합 보고서</span><span class="rh-tag">SESSION COMPLETE</span></div><div class="report-body">'+fmt(report)+'</div><div class="report-foot"><span>📁 '+esc(sessionPath||'')+'</span><span class="rf-link" data-sub="'+esc(sessionRel||'')+'">업무 일지 열람 →</span></div>';
+  el.innerHTML='<div class="report-head"><span>📝 총괄실장 · 종합 보고서</span><span class="rh-tag">SESSION COMPLETE</span></div><div class="report-body">'+fmt(report)+'</div><div class="report-foot"><span>📁 '+esc(sessionPath||'')+'</span><span class="rf-link" data-sub="'+esc(sessionRel||'')+'">업무 일지 열람 →</span></div>';
   const link=el.querySelector('.rf-link');
   if(link)link.addEventListener('click',()=>vscode.postMessage({type:'openCompanyFolder',sub:link.dataset.sub.replace(/^Company\//,'')}));
   chat.appendChild(el);scrollChatToBottomIfNear();
@@ -4934,8 +4934,8 @@ window.addEventListener('message',e=>{const msg=e.data;switch(msg.type){
          내려보세요" 만으로 무엇이 가능한지 모호했음. */
       const co = companyState.name || '회사';
       /* v2.89.110 — 기본 5명 ON + 옵션 4명 OFF + 루나 PIN. 사용자가 카드 클릭해서 자유롭게 변경 가능. */
-      addCorpBanner('✅ '+co+' 출범! 9명 팀 — 🟢 기본 ON 5명: 🧭 CEO · 📺 YouTube · 🎨 디자이너 · ✍️ 작가 · 📅 비서 (사용자가 OFF 가능) / ⏸ 옵션 4명 (📷 인스타·💼 비즈·🛠 개발·🔍 리서치): 카드 클릭해서 ON / 🔒 1명 (🎵 루나): 채용 PIN 필요');
-      addCorpBanner('💡 "다음 영상 컨셉 5개 뽑아줘" 처럼 자연어로 던지시면 CEO가 분배합니다.');
+      addCorpBanner('✅ '+co+' 출범! 9명 팀 — 🟢 기본 ON 5명: 🧭 총괄실장 · 📺 시황영상관 · 🎨 디자인실 · ✍️ 보고관 · 📅 비서실장 (사용자가 OFF 가능) / ⏸ 옵션 4명 (📷 기록채널·💼 성과관리관·🛠 공무팀·🔍 수급탐정): 카드 클릭해서 ON / 🔒 1명 (🎵 보안기록실): 채용 PIN 필요');
+      addCorpBanner('💡 "다음 영상 컨셉 5개 뽑아줘" 처럼 자연어로 던지시면 총괄실장이 분배합니다.');
     }
     break;
   case 'sessionsList':
