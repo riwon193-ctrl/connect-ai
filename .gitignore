@@ -7,3 +7,6 @@ preview.html
 releases/
 .env
 *.bak.*
+
+# Hermes local brain/company data
+_company/
