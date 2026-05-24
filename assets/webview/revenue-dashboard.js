@@ -86,12 +86,21 @@ function renderCeoSummary(data) {
   const pnl = Number((data.totals?.by_period || {}).thirty || 0);
   const tradeCount = Number((data.totals?.by_currency?.KRW || {}).count || 0);
 
-  const topTheme = Array.isArray(flow.top_real_themes) && flow.top_real_themes.length
-    ? flow.top_real_themes[0]
-    : null;
+  const flowThemes = Array.isArray(flow.top_real_themes) ? flow.top_real_themes : [];
+  const meaningfulThemes = flowThemes.filter(t => String(t.theme || '') !== '미분류');
+  const positiveThemes = meaningfulThemes
+    .filter(t => Number(t.sum_est_qty || 0) > 0)
+    .sort((a, b) => Number(b.sum_est_qty || 0) - Number(a.sum_est_qty || 0));
+  const fallbackThemes = meaningfulThemes
+    .slice()
+    .sort((a, b) => Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0)));
 
+  const topTheme = positiveThemes[0] || fallbackThemes[0] || flowThemes[0] || null;
+
+  const topThemeSum = topTheme ? Number(topTheme.sum_est_qty || 0) : 0;
+  const topThemeLabel = topTheme ? (topThemeSum > 0 ? '주도 후보' : (topThemeSum < 0 ? '회피 후보' : '관찰 후보')) : '';
   const topThemeText = topTheme
-    ? `${topTheme.theme} ${Number(topTheme.sum_est_qty || 0) >= 0 ? '+' : ''}${Math.round(Number(topTheme.sum_est_qty || 0)).toLocaleString('ko-KR')}`
+    ? `${topTheme.theme} ${topThemeSum >= 0 ? '+' : ''}${Math.round(topThemeSum).toLocaleString('ko-KR')} (${topThemeLabel})`
     : '수급 대기';
 
   const pnlText = `${pnl >= 0 ? '+' : ''}${Math.round(pnl).toLocaleString('ko-KR')} KRW`;
@@ -177,8 +186,10 @@ function renderInvestorFlow(flow) {
 
   box.innerHTML = flow.top_real_themes.slice(0, 6).map(t => {
     const sum = Number(t.sum_est_qty || 0);
-    const clsColor = sum >= 0 ? '#67e8f9' : '#fb7185';
+    const clsColor = sum > 0 ? '#67e8f9' : (sum < 0 ? '#fb7185' : '#fbbf24');
     const sign = sum > 0 ? '+' : '';
+    const flowLabel = sum > 0 ? '주도 후보' : (sum < 0 ? '회피 후보' : '관찰 후보');
+    const labelColor = sum > 0 ? '#34d399' : (sum < 0 ? '#fb7185' : '#fbbf24');
     const stocks = Array.isArray(t.stocks)
       ? t.stocks.slice(0, 2).map(s => esc(s.name || s.ticker || '')).filter(Boolean).join(' · ')
       : '';
@@ -191,7 +202,10 @@ function renderInvestorFlow(flow) {
       min-height:92px;
       box-shadow:inset 0 0 18px rgba(34,211,238,.05);
     ">
-      <div style="font-size:.82rem;color:#94a3b8;margin-bottom:6px;">${esc(t.theme)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <div style="font-size:.82rem;color:#94a3b8;">${esc(t.theme)}</div>
+        <div style="font-size:.68rem;font-weight:900;color:${labelColor};border:1px solid ${labelColor};border-radius:999px;padding:3px 8px;background:rgba(15,23,42,.45);">${flowLabel}</div>
+      </div>
       <div style="font-size:1.35rem;font-weight:1000;color:${clsColor};text-shadow:0 0 10px ${clsColor};">
         ${sign}${Math.round(sum).toLocaleString('ko-KR')}
       </div>
