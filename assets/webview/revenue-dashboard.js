@@ -68,6 +68,56 @@ function countUp(el, target, opts = {}) {
 
 
 
+
+function renderCeoSummary(data) {
+  const main = $('ceoSummaryMain');
+  const sub = $('ceoSummarySub');
+  const badge = $('ceoSummaryBadge');
+  if (!main || !sub || !badge) return;
+
+  const mv = data.market_view || {};
+  const risk = data.risk_status || {};
+  const perf = data.performance || {};
+  const flow = data.investor_flow || {};
+
+  const market = mv.market_view || 'UNKNOWN';
+  const riskStatus = risk.status || 'UNKNOWN';
+  const monthPct = Number(perf.month_return_pct || 0);
+  const pnl = Number((data.totals?.by_period || {}).thirty || 0);
+  const tradeCount = Number((data.totals?.by_currency?.KRW || {}).count || 0);
+
+  const topTheme = Array.isArray(flow.top_real_themes) && flow.top_real_themes.length
+    ? flow.top_real_themes[0]
+    : null;
+
+  const topThemeText = topTheme
+    ? `${topTheme.theme} ${Number(topTheme.sum_est_qty || 0) >= 0 ? '+' : ''}${Math.round(Number(topTheme.sum_est_qty || 0)).toLocaleString('ko-KR')}`
+    : '수급 대기';
+
+  const pnlText = `${pnl >= 0 ? '+' : ''}${Math.round(pnl).toLocaleString('ko-KR')} KRW`;
+  const pctText = `${monthPct >= 0 ? '+' : ''}${monthPct.toFixed(3)}%`;
+
+  let verdict = 'WATCH';
+  let color = '#67e8f9';
+  if (riskStatus === 'NORMAL' && market === 'RISK_ON') {
+    verdict = 'GO';
+    color = '#34d399';
+  }
+  if (riskStatus !== 'NORMAL' || market === 'RISK_OFF') {
+    verdict = 'CAUTION';
+    color = '#fbbf24';
+  }
+
+  main.textContent = `${market} · ${riskStatus} · ${tradeCount}건 · ${pctText}`;
+  sub.textContent = `누적손익 ${pnlText} · 수급 ${topThemeText} · 보유 ${Number(risk.positions_count || 0)} · 셧다운 ${risk.shutdown ? 'ON' : 'OFF'}`;
+
+  badge.textContent = verdict;
+  badge.style.color = color;
+  badge.style.textShadow = `0 0 12px ${color}`;
+  badge.style.borderColor = color;
+}
+
+
 function renderRiskStatus(risk) {
   const box = $('riskStatusBox');
   if (!box) return;
@@ -442,6 +492,7 @@ function render(state) {
   $('emptyArea').classList.add('hidden');
 
   const primaryCur = renderKPI(data);
+  renderCeoSummary(data);
   renderMarketView(data.market_view || null);
   renderRiskStatus(data.risk_status || null);
   renderInvestorFlow(data.investor_flow || null);

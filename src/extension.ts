@@ -12447,6 +12447,43 @@ class RevenueDashboardPanel {
 
   <div id="emptyArea" class="hidden"></div>
 
+  <!-- CEO summary row -->
+  <div class="row" style="margin-top: 20px;">
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="section">
+        <h2>CEO 요약</h2>
+        <div id="ceoSummaryBox" style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:16px;
+          padding:4px 2px 2px;
+        ">
+          <div>
+            <div id="ceoSummaryMain" style="font-size:1.15rem;font-weight:900;color:#e2e8f0;">
+              Hermes 상태 요약 대기 중
+            </div>
+            <div id="ceoSummarySub" style="font-size:.82rem;color:#94a3b8;margin-top:6px;line-height:1.5;">
+              market_view · risk_status · performance_summary 연결 후 표시됩니다.
+            </div>
+          </div>
+          <div id="ceoSummaryBadge" style="
+            min-width:120px;
+            text-align:center;
+            padding:12px 18px;
+            border-radius:18px;
+            border:1px solid rgba(103,232,249,.35);
+            color:#67e8f9;
+            font-size:1.25rem;
+            font-weight:1000;
+            text-shadow:0 0 12px rgba(103,232,249,.8);
+            background:rgba(15,23,42,.55);
+          ">WAIT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KPI strip -->
   <div class="kpi-strip">
     <div class="kpi today">
