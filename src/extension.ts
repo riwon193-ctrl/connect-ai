@@ -11453,8 +11453,8 @@ class CompanyDashboardPanel {
     <div class="rev-glyph-rain" aria-hidden="true"></div>
     <div class="rev-inner">
       <div class="rev-left">
-        <div class="rev-eyebrow">REVENUE COMMAND CENTER · <span class="rev-live"><span class="rev-pulse"></span> LIVE</span></div>
-        <div class="rev-title">💰 매출 컨트롤 센터</div>
+        <div class="rev-eyebrow">PERFORMANCE COMMAND CENTER · <span class="rev-live"><span class="rev-pulse"></span> LIVE</span></div>
+        <div class="rev-title">📈 수익률 관리 센터</div>
         <div class="rev-sub" id="revSubtitle">PayPal 연결을 확인하는 중…</div>
       </div>
       <div class="rev-kpis" id="revKpis">
@@ -12184,7 +12184,7 @@ class RevenueDashboardPanel {
             }
             const cfg = JSON.parse(_safeReadText(ppJson) || '{}');
             if (!cfg.CLIENT_ID || !cfg.CLIENT_SECRET) {
-                this._postError('PayPal Client ID 또는 Secret 미설정. 외부 연결 패널에서 입력 필요.');
+                this._postError('performance_summary.json 확인 필요.');
                 return;
             }
             const env = { ...process.env, OUTPUT: 'json', LOOKBACK_DAYS: String(cfg.LOOKBACK_DAYS || 30) };
@@ -12236,7 +12236,7 @@ class RevenueDashboardPanel {
   <header class="hero">
     <div class="hero-mark">💰</div>
     <div class="hero-info">
-      <div class="eyebrow">CONNECT AI · REVENUE COMMAND CENTER</div>
+      <div class="eyebrow">CONNECT AI · PERFORMANCE COMMAND CENTER</div>
       <h1>매출 대시보드</h1>
       <div class="hero-sub">
         PayPal 거래 실시간 분석 · 게임별 매출 분해 · <span class="live">LIVE</span>
@@ -13848,8 +13848,8 @@ body.dispatching .beams{opacity:1}
   <div class="fr-head">
     <div class="fr-icon">💰</div>
     <div class="fr-title">
-      <div class="fr-eyebrow">REVENUE · <span class="fr-live"><span class="fr-pulse"></span>LIVE</span></div>
-      <div class="fr-name">매출 컨트롤 센터</div>
+      <div class="fr-eyebrow">PERFORMANCE · <span class="fr-live"><span class="fr-pulse"></span>LIVE</span></div>
+      <div class="fr-name">수익률 관리 센터</div>
     </div>
     <button class="fr-close" id="frClose" title="숨기기">✕</button>
   </div>
@@ -13873,15 +13873,15 @@ body.dispatching .beams{opacity:1}
   </div>
   <div class="fr-actions">
     <button class="fr-btn primary" id="frOpenDashboard">
-      📊 풀스크린 대시보드
+      📊 수익률 대시보드
       <span class="fr-btn-arrow">→</span>
     </button>
-    <button class="fr-btn ghost" id="frAskHyunbin" title="현빈 에이전트 매출 분석">🧠 현빈 분석</button>
+    <button class="fr-btn ghost" id="frAskHyunbin" title="현빈 에이전트 수익률 분석">🧠 수익률 분석</button>
   </div>
 </div>
 
 <!-- 숨김 상태에서 다시 열 수 있는 작은 핍 (floating 닫혔을 때만 보임) -->
-<button class="fr-reopen" id="frReopen" title="매출 컨트롤 센터 열기">💰</button>
+<button class="fr-reopen" id="frReopen" title="수익률 관리 센터 열기">💰</button>
 
 <div class="office-wrap">
   <div class="office-floor" id="floor">
@@ -15707,7 +15707,7 @@ window.addEventListener('message', e => {
       return;
     }
     if (!data || !data.totals) {
-      $$('frSub').textContent = '💡 외부 연결 패널 → PayPal 입력';
+      $$('frSub').textContent = '💡 Hermes 성과 데이터 연결됨';
       return;
     }
     const totals = data.totals;
@@ -20929,7 +20929,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 3. 저장 → 즉시 매출 분석 가능
 
 📊 평가: 대기 — PayPal 자격증명 입력 후 재시도.
-📝 다음 단계: 사장님이 PayPal Developer Dashboard 에서 Client ID/Secret 복사 → 외부 연결 패널 입력.
+📝 다음 단계: performance_summary.json 생성 여부 확인.
 `;
         }
         try {
@@ -20946,7 +20946,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
             if (r.exitCode !== 0 || !r.output) {
                 return `💼 현빈: PayPal 데이터 가져오기 실패. ${r.stderr.slice(-150) || ''}
 
-📋 외부 연결 패널에서 Client ID/Secret 다시 확인 후 재시도.
+📋 Hermes 성과 데이터 파일을 다시 확인 후 재시도.
 📊 평가: 대기 — 자격증명 확인 필요.
 📝 다음 단계: \`Cmd+Shift+P\` → \`Connect AI: 외부 연결\` 에서 PayPal 카드 점검.
 `;
