@@ -11708,7 +11708,7 @@ class CompanyDashboardPanel {
         </svg>
       </div>
       <div>
-        <div class="hero-eyebrow">CONNECT AI · 직원 현황</div>
+        <div class="hero-eyebrow">HERMES_AIOS · 직원 현황</div>
         <div class="hero-title" id="companyName">불러오는 중…</div>
         <div class="hero-meta">
           <span class="meta-pill" id="todayLabel"></span>
