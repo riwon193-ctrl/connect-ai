@@ -67,6 +67,55 @@ function countUp(el, target, opts = {}) {
 
 
 
+
+function renderRiskStatus(risk) {
+  const box = $('riskStatusBox');
+  if (!box) return;
+
+  if (!risk) {
+    box.innerHTML = '<div style="color:var(--text-3);font-size:.9rem;">office_inspection_report.json 대기 중</div>';
+    return;
+  }
+
+  const status = risk.status || 'UNKNOWN';
+  const dangerCount = Array.isArray(risk.dangers) ? risk.dangers.length : 0;
+  const warningCount = Array.isArray(risk.warnings) ? risk.warnings.length : 0;
+  const statusColor = status === 'NORMAL' ? '#34d399' : (dangerCount > 0 ? '#fb7185' : '#fbbf24');
+
+  const krw = (v) => {
+    const n = Number(v || 0);
+    return (n > 0 ? '+' : '') + Math.round(n).toLocaleString('ko-KR');
+  };
+
+  const pill = (label, value, color) => `<div style="
+    border:1px solid rgba(103,232,249,.20);
+    background:rgba(15,23,42,.46);
+    border-radius:16px;
+    padding:14px 16px;
+    min-height:74px;
+  ">
+    <div style="font-size:.72rem;color:#94a3b8;margin-bottom:6px;">${label}</div>
+    <div style="font-size:1.15rem;font-weight:1000;color:${color || '#e2e8f0'};text-shadow:0 0 8px ${color || 'transparent'};">${value}</div>
+  </div>`;
+
+  box.innerHTML =
+    `<div style="
+      border:1px solid rgba(103,232,249,.26);
+      background:rgba(15,23,42,.56);
+      border-radius:18px;
+      padding:16px;
+      min-height:74px;
+    ">
+      <div style="font-size:.72rem;color:#94a3b8;margin-bottom:6px;">감사관 상태</div>
+      <div style="font-size:1.5rem;font-weight:1000;color:${statusColor};text-shadow:0 0 12px ${statusColor};">${esc(status)}</div>
+    </div>` +
+    pill('경고 / 위험', `${warningCount} / ${dangerCount}`, dangerCount > 0 ? '#fb7185' : '#67e8f9') +
+    pill('일일손익', `${krw(risk.daily_pnl)} KRW`, Number(risk.daily_pnl || 0) >= 0 ? '#67e8f9' : '#fb7185') +
+    pill('잔고', `${Math.round(Number(risk.balance || 0)).toLocaleString('ko-KR')} KRW`, '#e2e8f0') +
+    pill('보유 / 셧다운', `${Number(risk.positions_count || 0)} / ${risk.shutdown ? 'ON' : 'OFF'}`, risk.shutdown ? '#fb7185' : '#34d399');
+}
+
+
 function renderInvestorFlow(flow) {
   const box = $('investorFlowBox');
   if (!box) return;
@@ -394,6 +443,7 @@ function render(state) {
 
   const primaryCur = renderKPI(data);
   renderMarketView(data.market_view || null);
+  renderRiskStatus(data.risk_status || null);
   renderInvestorFlow(data.investor_flow || null);
   renderSparkline(data.by_day || {}, primaryCur);
   renderDonut(data.by_project || {}, primaryCur);

@@ -1249,6 +1249,40 @@ function _readHermesInvestorFlow(): any {
 }
 
 
+
+function _readHermesRiskStatus(): any {
+    try {
+        const inspectionPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/office_inspection_report.json';
+        const riskMdPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/risk_manager_report.md';
+
+        let inspection: any = null;
+        if (fs.existsSync(inspectionPath)) {
+            inspection = JSON.parse(fs.readFileSync(inspectionPath, 'utf-8') || '{}');
+        }
+
+        let riskText = '';
+        if (fs.existsSync(riskMdPath)) {
+            riskText = fs.readFileSync(riskMdPath, 'utf-8').slice(0, 500);
+        }
+
+        const paper = inspection?.paper_state_summary || {};
+        return {
+            status: String(inspection?.status || 'UNKNOWN'),
+            warnings: Array.isArray(inspection?.warnings) ? inspection.warnings : [],
+            dangers: Array.isArray(inspection?.dangers) ? inspection.dangers : [],
+            timestamp: String(inspection?.timestamp || ''),
+            balance: Number(paper.balance || 0),
+            daily_pnl: Number(paper.daily_pnl || 0),
+            positions_count: Number(paper.positions_count || 0),
+            shutdown: !!paper.shutdown,
+            risk_text: riskText
+        };
+    } catch {
+        return null;
+    }
+}
+
+
 function _readHermesPerformanceMiniData(): any {
     try {
         const summaryPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/performance_summary.json';
@@ -1271,6 +1305,7 @@ function _readHermesPerformanceMiniData(): any {
         const detail = _readHermesTradeDetails();
         const marketView = _readHermesMarketView();
         const investorFlow = _readHermesInvestorFlow();
+        const riskStatus = _readHermesRiskStatus();
 
         return {
             success: true,
@@ -1304,7 +1339,8 @@ function _readHermesPerformanceMiniData(): any {
             by_project: detail.by_project || {},
             transactions: detail.transactions || [],
             market_view: marketView,
-            investor_flow: investorFlow
+            investor_flow: investorFlow,
+            risk_status: riskStatus
         };
     } catch (e: any) {
         return { error: 'Hermes 성과 데이터 파싱 실패: ' + (e?.message || String(e)) };
@@ -12447,6 +12483,16 @@ class RevenueDashboardPanel {
             <div id="marketViewRationale" style="font-size:.78rem;color:#94a3b8;line-height:1.5;">market_view.json 대기 중</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk status row -->
+  <div class="row" style="margin-top: 20px;">
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="section">
+        <h2>리스크 관제</h2>
+        <div id="riskStatusBox" style="display:grid;grid-template-columns:180px repeat(4,minmax(0,1fr));gap:12px;align-items:stretch;"></div>
       </div>
     </div>
   </div>
