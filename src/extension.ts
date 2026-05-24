@@ -1183,65 +1183,154 @@ function _readHermesMarketView(): any {
 function _readHermesInvestorFlow(): any {
     try {
         const flowPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/investor_flow_report.json';
+        const archiveDir = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/archive/investor_flow';
+
         if (!fs.existsSync(flowPath)) return null;
 
         const f = JSON.parse(fs.readFileSync(flowPath, 'utf-8') || '{}');
+        const todayKey = String(f.date || new Date().toISOString().slice(0, 10));
 
-        let themes: any[] = Array.isArray(f.top_real_themes) ? f.top_real_themes : [];
+        /* v3: 최신 수급 파일을 날짜별 archive로 보존 */
+        try {
+            fs.mkdirSync(archiveDir, { recursive: true });
+            const archivePath = path.join(archiveDir, `${todayKey}.json`);
+            fs.writeFileSync(archivePath, JSON.stringify(f, null, 2));
+        } catch { /* archive 실패해도 화면은 계속 표시 */ }
 
-        /* 최신 구조 fallback: real_flow.rows 를 테마별로 직접 집계 */
-        if ((!themes || themes.length === 0) && Array.isArray(f?.real_flow?.rows)) {
-            const byTheme: Record<string, any> = {};
+        const buildThemesFromReport = (report: any): any[] => {
+            let themes: any[] = Array.isArray(report.top_real_themes) ? report.top_real_themes : [];
 
-            for (const r of f.real_flow.rows) {
-                const tags = Array.isArray(r.theme_tags) && r.theme_tags.length ? r.theme_tags : ['미분류'];
+            if ((!themes || themes.length === 0) && Array.isArray(report?.real_flow?.rows)) {
+                const byTheme: Record<string, any> = {};
 
-                for (const tag of tags) {
-                    const theme = String(tag || '미분류');
-                    if (!byTheme[theme]) {
-                        byTheme[theme] = {
-                            theme,
-                            stock_count: 0,
-                            foreign_est_qty: 0,
-                            institution_est_qty: 0,
-                            sum_est_qty: 0,
-                            stocks: []
-                        };
-                    }
+                for (const r of report.real_flow.rows) {
+                    const tags = Array.isArray(r.theme_tags) && r.theme_tags.length ? r.theme_tags : ['미분류'];
 
-                    byTheme[theme].stock_count += 1;
-                    byTheme[theme].foreign_est_qty += Number(r.foreign_est_qty || 0);
-                    byTheme[theme].institution_est_qty += Number(r.institution_est_qty || 0);
-                    byTheme[theme].sum_est_qty += Number(r.sum_est_qty || 0);
+                    for (const tag of tags) {
+                        const theme = String(tag || '미분류');
+                        if (!byTheme[theme]) {
+                            byTheme[theme] = {
+                                theme,
+                                stock_count: 0,
+                                foreign_est_qty: 0,
+                                institution_est_qty: 0,
+                                sum_est_qty: 0,
+                                stocks: []
+                            };
+                        }
 
-                    if (byTheme[theme].stocks.length < 3) {
-                        byTheme[theme].stocks.push({
-                            ticker: String(r.ticker || ''),
-                            name: String(r.name || ''),
-                            sum_est_qty: Number(r.sum_est_qty || 0)
-                        });
+                        byTheme[theme].stock_count += 1;
+                        byTheme[theme].foreign_est_qty += Number(r.foreign_est_qty || 0);
+                        byTheme[theme].institution_est_qty += Number(r.institution_est_qty || 0);
+                        byTheme[theme].sum_est_qty += Number(r.sum_est_qty || 0);
+
+                        if (byTheme[theme].stocks.length < 3) {
+                            byTheme[theme].stocks.push({
+                                ticker: String(r.ticker || ''),
+                                name: String(r.name || ''),
+                                sum_est_qty: Number(r.sum_est_qty || 0)
+                            });
+                        }
                     }
                 }
+
+                themes = Object.values(byTheme);
             }
 
-            themes = Object.values(byTheme).sort((a: any, b: any) =>
-                Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0))
-            );
-        }
-
-        return {
-            date: String(f.date || ''),
-            created_at: String(f.created_at || ''),
-            data_status: String(f.data_status || ''),
-            market_context: f.market_context || {},
-            top_real_themes: themes.slice(0, 6).map((t: any) => ({
+            return themes.map((t: any) => ({
                 theme: String(t.theme || '미분류'),
                 stock_count: Number(t.stock_count || 0),
                 foreign_est_qty: Number(t.foreign_est_qty || 0),
                 institution_est_qty: Number(t.institution_est_qty || 0),
                 sum_est_qty: Number(t.sum_est_qty || 0),
                 stocks: Array.isArray(t.stocks) ? t.stocks.slice(0, 3) : []
-            }))
+            }));
+        };
+
+        const todayThemes = buildThemesFromReport(f);
+
+        /* v3: archive에서 최근 N일 테마별 누적 계산 */
+        const archiveReports: any[] = [];
+        try {
+            if (fs.existsSync(archiveDir)) {
+                const files = fs.readdirSync(archiveDir)
+                    .filter(x => x.endsWith('.json'))
+                    .sort()
+                    .slice(-10);
+
+                for (const file of files) {
+                    try {
+                        const report = JSON.parse(fs.readFileSync(path.join(archiveDir, file), 'utf-8') || '{}');
+                        archiveReports.push(report);
+                    } catch { /* skip bad archive */ }
+                }
+            }
+        } catch { /* ignore */ }
+
+        const aggregateTrend = (days: number): any[] => {
+            const reports = archiveReports.slice(-days);
+            const byTheme: Record<string, any> = {};
+
+            for (const report of reports) {
+                const themes = buildThemesFromReport(report);
+                for (const t of themes) {
+                    const theme = String(t.theme || '미분류');
+                    if (!byTheme[theme]) {
+                        byTheme[theme] = {
+                            theme,
+                            days,
+                            seen_days: 0,
+                            positive_days: 0,
+                            negative_days: 0,
+                            sum_est_qty: 0,
+                            foreign_est_qty: 0,
+                            institution_est_qty: 0,
+                            stock_count: 0
+                        };
+                    }
+                    byTheme[theme].seen_days += 1;
+                    byTheme[theme].sum_est_qty += Number(t.sum_est_qty || 0);
+                    byTheme[theme].foreign_est_qty += Number(t.foreign_est_qty || 0);
+                    byTheme[theme].institution_est_qty += Number(t.institution_est_qty || 0);
+                    byTheme[theme].stock_count += Number(t.stock_count || 0);
+                    if (Number(t.sum_est_qty || 0) > 0) byTheme[theme].positive_days += 1;
+                    if (Number(t.sum_est_qty || 0) < 0) byTheme[theme].negative_days += 1;
+                }
+            }
+
+            return Object.values(byTheme).sort((a: any, b: any) =>
+                Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0))
+            );
+        };
+
+        const trend_3d = aggregateTrend(3);
+        const trend_5d = aggregateTrend(5);
+        const trend_10d = aggregateTrend(10);
+
+        const trendMap: Record<string, any> = {};
+        for (const t of trend_3d) trendMap[t.theme] = { ...(trendMap[t.theme] || {}), trend_3d: t };
+        for (const t of trend_5d) trendMap[t.theme] = { ...(trendMap[t.theme] || {}), trend_5d: t };
+        for (const t of trend_10d) trendMap[t.theme] = { ...(trendMap[t.theme] || {}), trend_10d: t };
+
+        const enrichedTodayThemes = todayThemes.map((t: any) => ({
+            ...t,
+            trend_3d: trendMap[t.theme]?.trend_3d || null,
+            trend_5d: trendMap[t.theme]?.trend_5d || null,
+            trend_10d: trendMap[t.theme]?.trend_10d || null
+        })).sort((a: any, b: any) =>
+            Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0))
+        );
+
+        return {
+            date: String(f.date || ''),
+            created_at: String(f.created_at || ''),
+            data_status: String(f.data_status || ''),
+            market_context: f.market_context || {},
+            archive_days: archiveReports.length,
+            top_real_themes: enrichedTodayThemes.slice(0, 6),
+            trend_3d: trend_3d.slice(0, 8),
+            trend_5d: trend_5d.slice(0, 8),
+            trend_10d: trend_10d.slice(0, 8)
         };
     } catch {
         return null;

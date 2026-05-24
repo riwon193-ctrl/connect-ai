@@ -88,17 +88,28 @@ function renderCeoSummary(data) {
 
   const flowThemes = Array.isArray(flow.top_real_themes) ? flow.top_real_themes : [];
   const meaningfulThemes = flowThemes.filter(t => String(t.theme || '') !== '미분류');
+
+  const trendLeaders = meaningfulThemes
+    .filter(t => Number(t.trend_5d?.sum_est_qty || t.trend_3d?.sum_est_qty || 0) > 0)
+    .sort((a, b) => Number(b.trend_5d?.sum_est_qty || b.trend_3d?.sum_est_qty || 0) - Number(a.trend_5d?.sum_est_qty || a.trend_3d?.sum_est_qty || 0));
+
   const positiveThemes = meaningfulThemes
     .filter(t => Number(t.sum_est_qty || 0) > 0)
     .sort((a, b) => Number(b.sum_est_qty || 0) - Number(a.sum_est_qty || 0));
+
   const fallbackThemes = meaningfulThemes
     .slice()
     .sort((a, b) => Math.abs(Number(b.sum_est_qty || 0)) - Math.abs(Number(a.sum_est_qty || 0)));
 
-  const topTheme = positiveThemes[0] || fallbackThemes[0] || flowThemes[0] || null;
+  const topTheme = trendLeaders[0] || positiveThemes[0] || fallbackThemes[0] || flowThemes[0] || null;
 
-  const topThemeSum = topTheme ? Number(topTheme.sum_est_qty || 0) : 0;
-  const topThemeLabel = topTheme ? (topThemeSum > 0 ? '주도 후보' : (topThemeSum < 0 ? '회피 후보' : '관찰 후보')) : '';
+  const topTrend = topTheme ? (topTheme.trend_5d || topTheme.trend_3d || null) : null;
+  const topThemeSum = topTheme ? Number(topTrend?.sum_est_qty ?? topTheme.sum_est_qty ?? 0) : 0;
+  const topThemeLabel = topTheme
+    ? (topTrend && Number(topTrend.seen_days || 0) >= 2
+      ? `${Number(topTrend.seen_days || 0)}일 누적`
+      : (topThemeSum > 0 ? '오늘 주도' : (topThemeSum < 0 ? '오늘 이탈' : '관찰')))
+    : '';
   const topThemeText = topTheme
     ? `${topTheme.theme} ${topThemeSum >= 0 ? '+' : ''}${Math.round(topThemeSum).toLocaleString('ko-KR')} (${topThemeLabel})`
     : '수급 대기';
@@ -188,8 +199,21 @@ function renderInvestorFlow(flow) {
     const sum = Number(t.sum_est_qty || 0);
     const clsColor = sum > 0 ? '#67e8f9' : (sum < 0 ? '#fb7185' : '#fbbf24');
     const sign = sum > 0 ? '+' : '';
-    const flowLabel = sum > 0 ? '주도 후보' : (sum < 0 ? '회피 후보' : '관찰 후보');
-    const labelColor = sum > 0 ? '#34d399' : (sum < 0 ? '#fb7185' : '#fbbf24');
+    const t3 = t.trend_3d || null;
+    const t5 = t.trend_5d || null;
+    const trendBase = t5 || t3 || null;
+    const trendSum = Number(trendBase?.sum_est_qty || 0);
+    const positiveDays = Number(trendBase?.positive_days || 0);
+    const seenDays = Number(trendBase?.seen_days || 0);
+
+    let flowLabel = sum > 0 ? '오늘 주도' : (sum < 0 ? '오늘 이탈' : '오늘 관찰');
+    if (trendBase && seenDays >= 2 && trendSum > 0 && positiveDays >= Math.min(3, seenDays)) {
+      flowLabel = `${seenDays}일 누적 주도`;
+    } else if (trendBase && seenDays >= 2 && trendSum < 0) {
+      flowLabel = `${seenDays}일 누적 이탈`;
+    }
+
+    const labelColor = flowLabel.includes('주도') ? '#34d399' : (flowLabel.includes('이탈') ? '#fb7185' : '#fbbf24');
     const stocks = Array.isArray(t.stocks)
       ? t.stocks.slice(0, 2).map(s => esc(s.name || s.ticker || '')).filter(Boolean).join(' · ')
       : '';
@@ -210,8 +234,11 @@ function renderInvestorFlow(flow) {
         ${sign}${Math.round(sum).toLocaleString('ko-KR')}
       </div>
       <div style="font-size:.72rem;color:#64748b;margin-top:6px;">
-        외 ${Math.round(Number(t.foreign_est_qty || 0)).toLocaleString('ko-KR')}
+        오늘 외 ${Math.round(Number(t.foreign_est_qty || 0)).toLocaleString('ko-KR')}
         · 기 ${Math.round(Number(t.institution_est_qty || 0)).toLocaleString('ko-KR')}
+      </div>
+      <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">
+        누적 ${trendBase ? `${seenDays}일 ${Math.round(trendSum).toLocaleString('ko-KR')}` : '데이터 부족'}
       </div>
       <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">${stocks || '종목 없음'}</div>
     </div>`;
