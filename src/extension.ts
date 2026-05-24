@@ -1083,6 +1083,70 @@ function updateCompanyMetrics(updates: any) {
 }
 
 
+
+function _readHermesTradeDetails(): any {
+    const tradesPath = '/Users/gangminjun/Desktop/Hermes_AIOS/trades.jsonl';
+    const byProject: Record<string, any> = {};
+    const transactions: any[] = [];
+
+    try {
+        if (!fs.existsSync(tradesPath)) {
+            return { by_project: {}, transactions: [] };
+        }
+
+        const lines = fs.readFileSync(tradesPath, 'utf-8')
+            .split(/\r?\n/)
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        for (const line of lines) {
+            let t: any;
+            try { t = JSON.parse(line); } catch { continue; }
+
+            const action = String(t.action || t.side || t.type || t.decision || '').toUpperCase();
+            const isSell = action.includes('SELL') || action === 'EXIT' || action.includes('청산');
+            if (!isSell) continue;
+
+            const name = String(t.name || t.stock_name || t.symbol_name || t.ticker || t.code || '미분류');
+            const ticker = String(t.ticker || t.code || t.symbol || name);
+            const pnl = Number(t.pnl ?? t.realized_pnl ?? t.profit ?? t.profit_krw ?? t.amount ?? 0) || 0;
+            const tsRaw = t.ts || t.time || t.datetime || t.created_at || t.sell_time || t.exit_time || new Date().toISOString();
+            const ts = new Date(tsRaw);
+            const tsIso = isNaN(ts.getTime()) ? new Date().toISOString() : ts.toISOString();
+
+            if (!byProject[name]) {
+                byProject[name] = { gross: 0, count: 0, currency: 'KRW', items: {} };
+            }
+            byProject[name].gross += Math.abs(pnl);
+            byProject[name].count += 1;
+            byProject[name].items[ticker] = byProject[name].items[ticker] || { gross: 0, count: 0 };
+            byProject[name].items[ticker].gross += Math.abs(pnl);
+            byProject[name].items[ticker].count += 1;
+
+            transactions.push({
+                id: String(t.id || `${ticker}-${tsIso}-${transactions.length}`),
+                ts: tsIso,
+                ts_epoch: new Date(tsIso).getTime(),
+                value: pnl,
+                currency: 'KRW',
+                subject: `${name} ${pnl >= 0 ? '수익' : '손실'}`,
+                event_code: pnl >= 0 ? 'PROFIT' : 'LOSS',
+                is_refund: pnl < 0
+            });
+        }
+
+        transactions.sort((a, b) => Number(b.ts_epoch || 0) - Number(a.ts_epoch || 0));
+
+        return {
+            by_project: byProject,
+            transactions: transactions.slice(0, 30)
+        };
+    } catch {
+        return { by_project: {}, transactions: [] };
+    }
+}
+
+
 function _readHermesPerformanceMiniData(): any {
     try {
         const summaryPath = '/Users/gangminjun/Desktop/Hermes_AIOS/_company/sessions/performance_summary.json';
@@ -1101,6 +1165,8 @@ function _readHermesPerformanceMiniData(): any {
             const n = Number(v || 0);
             return Number.isFinite(n) ? n : 0;
         };
+
+        const detail = _readHermesTradeDetails();
 
         return {
             success: true,
@@ -1130,7 +1196,9 @@ function _readHermesPerformanceMiniData(): any {
                 take_profits: num(thirty.take_profits),
                 intraday_flats: num(thirty.intraday_flats)
             },
-            by_day: {}
+            by_day: {},
+            by_project: detail.by_project || {},
+            transactions: detail.transactions || []
         };
     } catch (e: any) {
         return { error: 'Hermes 성과 데이터 파싱 실패: ' + (e?.message || String(e)) };
@@ -12238,7 +12306,7 @@ class RevenueDashboardPanel {
       <div class="kpi-unit">7-day rolling</div>
     </div>
     <div class="kpi month">
-      <div class="kpi-label">이번 달 수익률 수익률</div>
+      <div class="kpi-label">이번 달 수익률</div>
       <div class="kpi-value" id="kpiMonth" data-last="0">0.00</div>
       <div class="kpi-sub" id="kpiMonthSub">—</div>
     </div>

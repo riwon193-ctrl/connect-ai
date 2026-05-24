@@ -230,8 +230,8 @@ function renderTransactions(txs) {
     const isNew = !firstRender && !KNOWN_TX_IDS.has(tx.id);
     KNOWN_TX_IDS.add(tx.id);
     const cls = tx.is_refund ? 'refund' : 'payment';
-    const icon = tx.is_refund ? '↩' : '＄';
-    const sign = tx.is_refund ? '-' : '+';
+    const icon = tx.is_refund ? '▼' : '▲';
+    const sign = tx.value < 0 ? '-' : '+';
     const subj = tx.subject || '(설명 없음)';
     const ts = tx.ts ? new Date(tx.ts) : null;
     const tsStr = ts ? `${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : '?';
