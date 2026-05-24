@@ -2322,7 +2322,7 @@ const TELEGRAM_HELP = `🤖 *Hermes_AIOS 봇* — 비서가 24시간 대기 중
 "할일 뭐 있어?" / "에이전트 뭐 하고 있어?" / "어제 뭐 했어?"
 
 💼 *작업 분배*
-"썸네일 만들어줘" / "유튜브 트렌드 분석해줘"
+"전광판 정리해줘" / "오늘 시황 분석해줘"
 → 총괄실장가 적합한 에이전트에게 분배 → 결과 보고
 
 🤖 *에이전트 직접 지시*
@@ -2384,7 +2384,7 @@ async function classifyToAgent(text: string): Promise<string> {
         if (AGENTS[id]) return id;
     } catch { /* fall through to keyword router */ }
     const lower = text.toLowerCase();
-    if (/유튜브|youtube|영상|채널|구독|썸네일/.test(lower)) return 'youtube';
+    if (/시황|뉴스|시장|장전|장중|브리핑/.test(lower)) return 'youtube';
     if (/인스타|instagram|릴스|피드|reel/.test(lower)) return 'instagram';
     if (/디자인|design|로고|이미지/.test(lower)) return 'designer';
     if (/코드|개발|사이트|웹|deploy|배포|api|app/.test(lower)) return 'developer';
@@ -2655,26 +2655,26 @@ function _buildCapabilityReport(): string {
         const channelId = (txt.match(/YOUTUBE_CHANNEL_ID\s*[:：=]\s*([A-Za-z0-9_\-]+)/) || [])[1] || '';
         if (apiKey && channelId) {
             const oauth = isYoutubeOAuthConnected();
-            agentSummary.push('  📺 *YouTube* — ✅ 채널 분석·트렌드' + (oauth ? '·시청 지속률·트래픽' : ' (Analytics는 OAuth 필요)'));
+            agentSummary.push('  📺 *시황영상관* — ✅ 시황 브리핑·뉴스 흐름' + (oauth ? '·시청 지속률·트래픽' : ' (Analytics는 OAuth 필요)'));
         } else {
-            agentSummary.push('  📺 *YouTube* — ⚠️ API 키·채널 ID 필요');
+            agentSummary.push('  📺 *시황영상관* — ⚠️ 시황 데이터 연결 확인 필요');
         }
     } catch {
-        agentSummary.push('  📺 *YouTube* — ⚠️ 설정 필요');
+        agentSummary.push('  📺 *시황영상관* — ⚠️ 설정 확인 필요');
     }
     /* LLM 기반 에이전트들 — 항상 가능 */
     agentSummary.push('  🎨 *디자이너* — ✅ 시안 카피·무드보드·브랜드 컬러 가이드');
     agentSummary.push('  ✍️ *작가* — ✅ 후크·스크립트·블로그·영상 카피');
-    agentSummary.push('  🎵 *루나* — ✅ BGM 자동 생성·영상-음악 합성·사운드 디자인');
+    agentSummary.push('  🔒 *보안기록실* — ✅ 잠금 자료·아카이브 보호');
     agentSummary.push('  💼 *성과관리관* — ✅ 가격·KPI·전략 분석');
     agentSummary.push('  💻 *코다리* — ✅ 사이트·자동화·API 코드');
     agentSummary.push('  🔍 *리서처* — ✅ 트렌드·경쟁사·사실 확인');
-    agentSummary.push('  📷 *기록채널* — ✅ 릴스 기획·해시태그·카피');
+    agentSummary.push('  📷 *기록채널* — ✅ 세션 기록·결정 로그 정리');
     lines.push(agentSummary.join('\n'));
     lines.push('');
     lines.push('*예시:*');
-    lines.push('• "다음 영상 컨셉 5개 뽑아줘" → 총괄실장가 YouTube·작가에게 분배');
-    lines.push('• "썸네일 시안 만들어줘" → 디자이너로');
+    lines.push('• "오늘 시황 요약해줘" → 총괄실장이 시황영상관·보고관에게 분배');
+    lines.push('• "전광판 보기 좋게 정리해줘" → 디자인실로');
     lines.push('• "오늘 일정 뭐야?" → 제가 바로 답변');
     lines.push('• "에이전트 뭐 하고 있어?" → 진행 중 작업 모두');
     lines.push('');
@@ -4145,9 +4145,9 @@ function stopDailyBriefingLoop() {
     }
 }
 
-/* ── v2.89.137 — Revenue Watcher (PayPal polling) ──────────────────────────
+/* ── v2.89.137 — Performance Watcher ──────────────────────────
    5분마다 paypal_revenue.py OUTPUT=json 호출 → 마지막 본 transaction id 와
-   비교 → 새 결제 발견 시 텔레그램 푸시 + 사무실 비서실장 책상 펄스. paypal 미설정
+   비교 → 새 매매 기록 발견 시 텔레그램 푸시 + 사무실 비서실장 책상 펄스. paypal 미설정
    시 silently skip. 이게 진짜 "AI 회사가 자고 있어도 결제 알아차림" 의 코어. */
 let _revenueWatcherTimer: NodeJS.Timeout | null = null;
 const _REVENUE_LAST_SEEN_KEY = 'revenueLastSeenTxId';
@@ -4198,7 +4198,7 @@ async function _runRevenueWatcherOnce(): Promise<void> {
         fresh.sort((a, b) => a.ts_epoch - b.ts_epoch);
         for (const tx of fresh) {
             const isRefund = !!tx.is_refund;
-            const arrow = isRefund ? '↩️ 환불' : '💰 새 결제';
+            const arrow = isRefund ? '↩️ 환불' : '💰 새 매매 기록';
             const sign = isRefund ? '-' : '+';
             const amount = `${sign}${Math.abs(tx.value).toFixed(2)} ${tx.currency}`;
             const subj = tx.subject || '(설명 없음)';
@@ -4209,7 +4209,7 @@ async function _runRevenueWatcherOnce(): Promise<void> {
             try {
                 appendConversationLog({
                     speaker: '비서', emoji: isRefund ? '↩️' : '💰',
-                    section: isRefund ? '환불 감지' : '새 결제',
+                    section: isRefund ? '환불 감지' : '새 매매 기록',
                     body: `${arrow}: ${subj} ${amount}`
                 });
             } catch { /* ignore */ }
@@ -6478,7 +6478,7 @@ ${_GOAL_PREAMBLE}
 - 📨 \`telegram_notify\` — 다른 도구 보고를 메신저로 자동 푸시
 
 ## 작업 원칙
-- 추상적 조언 대신 **실행 가능한 산출물** (제목·썸네일 브리프·스크립트 후크)
+- 추상적 조언 대신 **실행 가능한 산출물** (시황 요약·수급 관찰·리스크 코멘트)
 - 매번 다음 단계 1줄을 명시
 - 메모리(\`memory.md\`)에 누적된 댓글·반응 키워드를 후크에 반영
 `,
@@ -6490,7 +6490,7 @@ ${_GOAL_PREAMBLE}
 - 릴스 평균 도달 1만 이상
 
 ## 이번 주 목표
-- 릴스 기획 3개 (훅·보이스오버·자막 포함)
+- 오늘 시장 이슈 3개 요약
 - 캡션·해시태그 패턴 정리
 
 ## 작업 원칙
@@ -6501,11 +6501,11 @@ ${_GOAL_PREAMBLE}
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
 - 브랜드 컬러·타이포·로고 시스템 확정
-- 썸네일/포스트 템플릿 3종 표준화
+- 전광판 카드/보고서 템플릿 3종 정리
 
 ## 이번 주 목표
 - 디자인 브리프 1건 작성 (레퍼런스 5장 포함)
-- 썸네일 컨셉 3안 비교 정리
+- 관제 화면 개선안 3개 비교 정리
 
 ## 작업 원칙
 - 텍스트 설명만 X — 색상 코드·폰트명·레이아웃 좌표까지 구체적으로
@@ -6605,27 +6605,27 @@ ${_GOAL_PREAMBLE}
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
-- 영상 톤별 BGM 라이브러리 구축 (cinematic·lo-fi·ambient·edm 등)
+- 리스크/수익률/수급 보고서 아카이브 구축
 - 채널 시그니처 사운드 (오프닝/엔딩 BGM) 정착
 
 ## 이번 주 목표
-- 최근 영상 1편에 어울리는 BGM 1곡 자동 생성 + 합성
+- 최근 매매 복기 1건을 보고서로 정리
 - 다음 영상 5편의 무드 키워드(장르/BPM/분위기) 미리 잡아두기
 
 ## 작업 원칙
 - 막연한 "신나는 곡" X — 장르·BPM·길이 명시
-- 영상 길이에 맞춰 BGM loop/fade 자동 결정
+- 장마감 보고서 길이와 형식 자동 정리
 `,
   writer: `# ✍️ 보고관 에이전트 — 나의 미션
 
 ${_GOAL_PREAMBLE}
 ## 장기 목표 (3~6개월)
 - 후크·CTA 라이브러리 50개 운영
-- 채널·인스타·블로그 톤앤매너 가이드 확정
+- Hermes_AIOS 보고서 톤앤매너 가이드 확정
 
 ## 이번 주 목표
 - 영상 스크립트 초안 2편 (후크 3안 포함)
-- 인스타 캡션 5개 + 블로그 글 1편
+- 시황 요약 5줄 + 매매 복기 1편
 
 ## 작업 원칙
 - 한 산출물에 후크/본문/CTA를 명확히 분리
@@ -6888,12 +6888,12 @@ const AGENT_TOOLS_CATALOG: Record<string, { tool: string; desc: string; planned?
         { tool: 'competitor_brief', desc: '경쟁 채널 → 지시문 형식 다음 액션' },
         { tool: 'telegram_notify', desc: '다른 도구 보고를 메신저로 자동 푸시' },
         { tool: 'comment_replier', desc: '댓글 분류 + 답글 초안 (Draft 레벨)', planned: true },
-        { tool: 'video_uploader', desc: '제목·태그·썸네일·예약발행 업로드', planned: true },
+        { tool: 'market_report_archive', desc: '시황 보고서 날짜별 저장', planned: true },
         { tool: 'analytics_pull', desc: '주간 인사이트 (조회수·시청 지속률·구독 전환)', planned: true }
     ],
     instagram: [
         { tool: 'instagram_account', desc: 'Meta Graph API OAuth (비즈니스 계정)', planned: true },
-        { tool: 'feed_poster', desc: '피드/스토리/릴스 게시 (Draft → 승인 → 게시)', planned: true },
+        { tool: 'flow_trend_archive', desc: '외국인·기관 수급 날짜별 누적 저장', planned: true },
         { tool: 'dm_responder', desc: 'DM·댓글 분류 + 답글 초안', planned: true },
         { tool: 'insights_pull', desc: '도달·참여·팔로워 추이', planned: true }
     ],
@@ -6928,8 +6928,8 @@ const AGENT_TOOLS_CATALOG: Record<string, { tool: string; desc: string; planned?
     ],
     editor: [
         { tool: 'music_studio_setup', desc: '음악 모델 설치 (MusicGen / ACE-Step)' },
-        { tool: 'music_generate', desc: 'BGM 자동 생성 (장르·길이 지정)' },
-        { tool: 'music_to_video', desc: '생성된 BGM을 영상에 합성 (loop/fade)' }
+        { tool: 'office_archive', desc: '사무실 리포트·세션 아카이브 정리' },
+        { tool: 'risk_report_check', desc: '리스크 보고서·감사관 상태 점검' }
     ],
     writer: [
         { tool: 'tone_learner', desc: '사용자 과거 글 학습 → 톤 복제', planned: true },
@@ -7063,13 +7063,13 @@ function _seedAgentToolsIfMissing(agentId: string) {
       /* v2.89.121 — 비즈니스 에이전트 도구. PayPal 매출 자동 분석. */
       const toolsDir = path.join(getCompanyDir(), '_agents', agentId, 'tools');
       fs.mkdirSync(toolsDir, { recursive: true });
-      _seedBusinessPaypalRevenue(toolsDir);
+      _seed성과관리관PaypalRevenue(toolsDir);
     }
   } catch { /* ignore */ }
 }
 
 /* v2.89.121 — 비즈니스 에이전트 도구 시드. PayPal Developer API 직결. */
-function _seedBusinessPaypalRevenue(toolsDir: string) {
+function _seed성과관리관PaypalRevenue(toolsDir: string) {
   const py = _loadToolSeed('business/paypal_revenue.py');
   const md = _loadToolSeed('business/paypal_revenue.md');
   const json = JSON.stringify({
@@ -7741,7 +7741,7 @@ async function prefetchAgentRealtimeData(agentId: string): Promise<string> {
      자동 실행 → 거래 + 게임별 분류 + 환불·수수료 마크다운 컨텍스트로 주입 →
      성과관리관이 환각 없이 진짜 숫자로 분석. 유튜브(시황영상관) 와 동일 패턴. */
   if (agentId === 'business') {
-    candidates.push({ tool: 'paypal_revenue.py', label: 'PayPal 매출 분석 (게임·프로젝트별, 실제 거래 데이터)' });
+    candidates.push({ tool: 'paypal_revenue.py', label: 'Hermes 수익률 분석 (게임·프로젝트별, 실제 거래 데이터)' });
   }
   if (candidates.length === 0) return '';
   const toolsDir = path.join(getCompanyDir(), '_agents', agentId, 'tools');
@@ -7847,7 +7847,7 @@ function buildAgentConfigStatus(agentId: string): string {
     }
   }
   /* v2.89.7 — YouTube에 의존하는 다른 에이전트들도 OAuth 안내 절대 하지 않게.
-     수급탐정, Business 등이 YouTube 데이터를 사용할 때 "OAuth 필요" 같은
+     수급탐정, 성과관리관 등이 YouTube 데이터를 사용할 때 "OAuth 필요" 같은
      막다른 안내로 빙빙 도는 패턴을 끊음. */
   if (agentId === 'researcher' || agentId === 'business' || agentId === 'writer' || agentId === 'editor') {
     const oauthOk = isYoutubeOAuthConnected();
@@ -8291,7 +8291,7 @@ export function activate(context: vscode.ExtensionContext) {
     startTrackerNudgeLoop();
     /* P0-3: Daily briefing — fires once per day at configured time. */
     startDailyBriefingLoop();
-    /* v2.89.137: PayPal 새 결제 polling (5분마다) — 사용자가 자고 있어도 즉시 텔레그램 알림. */
+    /* v2.89.137: Hermes 성과 데이터 polling (5분마다) — 사용자가 자고 있어도 즉시 텔레그램 알림. */
     startRevenueWatcherLoop();
     /* v2.89.24: 사용자 정의 보고 스케줄러 (UI에서 설정한 시각마다 자동 발동). */
     startReportScheduler();
@@ -9002,7 +9002,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('connectAiLab.apiConnections.open', () => {
             ApiConnectionsPanel.createOrShow();
         }),
-        /* v2.89.137 — 매출 대시보드 (PayPal 시각화) */
+        /* v2.89.137 — 수익률 관제센터 (PayPal 시각화) */
         vscode.commands.registerCommand('connectAiLab.revenueDashboard.open', () => {
             RevenueDashboardPanel.createOrShow();
         })
@@ -11747,7 +11747,7 @@ class CompanyDashboardPanel {
   </section>
 
   <!-- v2.89.142 — 매출 카드. 회사 대시보드 메인 진입점.
-       클릭하면 풀 매출 대시보드 패널 (매트릭스 풍) 열림. -->
+       클릭하면 풀 수익률 관제센터 패널 (매트릭스 풍) 열림. -->
   <section class="card span-12 revenue-card" id="revenueCard">
     <div class="rev-glyph-rain" aria-hidden="true"></div>
     <div class="rev-inner">
@@ -11972,14 +11972,14 @@ const API_SERVICES: ApiServiceDef[] = [
         comingSoon: true,
         fields: [
             { key: 'META_ACCESS_TOKEN', label: 'Access Token', type: 'password' },
-            { key: 'INSTAGRAM_BUSINESS_ID', label: 'Business Account ID', type: 'text' },
+            { key: 'INSTAGRAM_BUSINESS_ID', label: '성과관리관 Account ID', type: 'text' },
         ],
     },
     {
         id: 'paypal',
         name: 'PayPal (매출 분석)',
         icon: '💰',
-        summary: '내 게임·서비스의 결제 거래를 분석. 매출 대시보드 + 새 결제 텔레그램 알림에 사용. Developer Dashboard에서 Client ID/Secret 발급.',
+        summary: '내 게임·서비스의 결제 거래를 분석. 수익률 관제센터 + 새 매매 기록 텔레그램 알림에 사용. Developer Dashboard에서 Client ID/Secret 발급.',
         helpUrl: 'https://developer.paypal.com/dashboard/applications',
         agentId: 'business',
         fields: [
@@ -12239,7 +12239,7 @@ async function saveApiConnection(serviceId: string, values: Record<string, strin
                 console.warn('[saveApiConnection] youtube_account.json sync failed:', e?.message || e);
             }
         }
-        /* v2.89.139 — PayPal 캐노니컬 JSON 동기화. paypal_revenue.py / 매출 대시보드 /
+        /* v2.89.139 — PayPal 캐노니컬 JSON 동기화. paypal_revenue.py / 수익률 관제센터 /
            RevenueWatcher 가 모두 _agents/business/tools/paypal_revenue.json 을 읽음.
            외부 연결 패널이 그 단일 진실 출처에 직접 write → 별도 설정 단계 불필요. */
         if (serviceId === 'paypal') {
@@ -12272,7 +12272,7 @@ async function saveApiConnection(serviceId: string, values: Record<string, strin
                 }
                 fs.writeFileSync(ppJsonPath, JSON.stringify(existing, null, 2));
                 if (clientId && clientSecret) {
-                    extraNote = `💰 paypal_revenue.json 동기화 — 매출 대시보드·watcher 즉시 사용 가능 (${existing['MODE']} 모드)`;
+                    extraNote = `💰 paypal_revenue.json 동기화 — 수익률 관제센터·watcher 즉시 사용 가능 (${existing['MODE']} 모드)`;
                 } else {
                     extraNote = `⚠️ Client ID + Secret 둘 다 입력해야 매출 분석 가능 (현재 일부 빈 값)`;
                 }
@@ -12413,7 +12413,7 @@ class ApiConnectionsPanel {
     <div>
       <div class="eyebrow">CONNECT AI · 외부 연결</div>
       <h1>API 키 한 곳에서 관리</h1>
-      <div class="hero-sub">텔레그램 · YouTube · Google Calendar · GitHub · 기록채널 — 모든 자격증명을 한 패널에서 입력하고 저장합니다. 같은 값이 <code>_agents/&lt;id&gt;/config.md</code>로 저장돼요.</div>
+      <div class="hero-sub">텔레그램 · 시황보고 · Google Calendar · GitHub · 기록채널 — 모든 자격증명을 한 패널에서 입력하고 저장합니다. 같은 값이 <code>_agents/&lt;id&gt;/config.md</code>로 저장돼요.</div>
     </div>
   </div>
 </header>
@@ -12425,9 +12425,9 @@ class ApiConnectionsPanel {
 }
 
 /* ── v2.89.137 — Revenue Dashboard panel ─────────────────────────────────
-   매출 시각화 메인 패널. paypal_revenue.py OUTPUT=json 호출 → 거대한
+   수익률 관제 메인 패널. performance_summary.json 기반 표시 → 거대한
    KPI 카운터, 게임별 도넛, 30일 스파크라인, 라이브 거래 피드.
-   매트릭스 + 네온 테마. 글리프 비 배경, count-up 애니메이션, 새 결제 시
+   매트릭스 + 네온 테마. 글리프 비 배경, count-up 애니메이션, 새 매매 기록 시
    화면 가운데 burst alert. */
 class RevenueDashboardPanel {
     public static current: RevenueDashboardPanel | null = null;
@@ -13659,7 +13659,7 @@ body.floorplan .conf-room,body.floorplan .location{display:none!important}
 .desk[data-agent="instagram"] .ds-screen::before{background:radial-gradient(circle at 50% 55%,rgba(225,48,108,.85) 0%,rgba(225,48,108,.5) 20%,transparent 35%),repeating-linear-gradient(0deg,rgba(247,119,55,.15) 0 4px,transparent 4px 8px),repeating-linear-gradient(90deg,rgba(247,119,55,.15) 0 4px,transparent 4px 8px);animation:igPulse 1.6s ease-in-out infinite}
 @keyframes igPulse{0%,100%{transform:scale(.95);opacity:.7}50%{transform:scale(1.05);opacity:1}}
 
-/* Business: bar chart growing */
+/* 성과관리관: bar chart growing */
 .desk[data-agent="business"] .ds-screen::before{background:linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 30%,transparent 30%) 0 100%/12% 100% no-repeat,linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 50%,transparent 50%) 16% 100%/12% 100% no-repeat,linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 70%,transparent 70%) 32% 100%/12% 100% no-repeat,linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 45%,transparent 45%) 48% 100%/12% 100% no-repeat,linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 85%,transparent 85%) 64% 100%/12% 100% no-repeat,linear-gradient(0deg,rgba(251,191,36,.7) 0%,rgba(251,191,36,.7) 60%,transparent 60%) 80% 100%/12% 100% no-repeat;animation:barsRise 2.4s ease-in-out infinite alternate}
 @keyframes barsRise{from{filter:brightness(.7)}to{filter:brightness(1.2)}}
 
@@ -14586,7 +14586,7 @@ const PERSONALITY = {
     likedLocs: ['meeting','gardenBench','cafeCounter']
   },
   youtube: {
-    thoughts: ['다음 썸네일 뭐로?', '오프닝 5초가 핵심', '트렌드 봐야지', '편집 컷 좀 줄이자', '구독자 반응 어떨까'],
+    thoughts: ['오늘 시장 온도는?', '수급 어디 붙었지?', '리스크 정상인가?', '보고서 정리하자', '전광판 확인하자'],
     status: ['🎥','📹','💡','🔥','▶️'],
     likedLocs: ['cafeCounter','meeting','gardenWalk']
   },
@@ -19503,7 +19503,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
        이제 흐름:
          1) 패턴 매칭 (deterministic, 절대 실패 X) — 명백한 키워드면 즉시 도구 실행
          2) LLM 분류기 — 변형된 표현 ("subscriber 어때?", "내 유튜브 어떻게 됐냐") 캐치
-         3) 총괄실장 플래너 — 진짜 다중 에이전트 작업 ("영상 기획해줘", "썸네일 만들어")
+         3) 총괄실장 플래너 — 진짜 다중 에이전트 작업 ("오늘 시황 정리해줘", "전광판 개선해줘")
 
        1·2 단계가 도구를 찾으면 그 도구만 실행하고 multi-agent 분배 전부 스킵. */
     private async _tryDataShortcut(prompt: string, sessionDir: string): Promise<boolean> {
@@ -19563,7 +19563,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
             },
         ];
         /* 창작·기획 동사 — 이게 있으면 분석이 아니라 multi-agent 작업 (총괄실장 플래너로) */
-        const creativePattern = /(?:만들|기획|디자인|썸네일\s*제작|썸네일\s*만들|스크립트\s*써|글\s*써|작성해|코딩|개발|제작|design|create|build|make|write|generate|plan)/i;
+        const creativePattern = /(?:만들|기획|디자인|보고서\s*작성|전광판\s*개선|글\s*써|작성해|코딩|개발|제작|design|create|build|make|write|generate|plan)/i;
         const isCreative = creativePattern.test(p);
         const lower = p.toLowerCase();
         const domainMatch = !isCreative && domainShortcuts.find(d =>
@@ -21311,7 +21311,7 @@ ${catalog.map((c, i) => `${i + 1}. agent=${c.agentId} tool=${c.tool} — ${c.des
 `;
             }
             const insight = `💼 성과관리관: 사장님, 실시간 PayPal 데이터 가져왔습니다. 즉시 분석 결과 보여드려요.\n\n`;
-            const footer = `\n\n📊 평가: 완료 — 실데이터 기반 분석 (LLM 우회, 환각 없음).\n📝 다음 단계: 위 "💡 다음 액션" 섹션 참고하시고, 더 깊이 분석 필요하면 매출 대시보드 (\`Cmd+Shift+P → 매출 대시보드\`) 에서 시각화 확인.\n`;
+            const footer = `\n\n📊 평가: 완료 — 실데이터 기반 분석 (LLM 우회, 환각 없음).\n📝 다음 단계: 위 "💡 다음 액션" 섹션 참고하시고, 더 깊이 분석 필요하면 수익률 관제센터 (\`Cmd+Shift+P → 수익률 관제센터\`) 에서 시각화 확인.\n`;
             return insight + r.output + footer;
         } catch (e: any) {
             return null;
