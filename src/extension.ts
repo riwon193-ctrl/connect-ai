@@ -1087,6 +1087,7 @@ function updateCompanyMetrics(updates: any) {
 function _readHermesTradeDetails(): any {
     const tradesPath = '/Users/gangminjun/Desktop/Hermes_AIOS/trades.jsonl';
     const byProject: Record<string, any> = {};
+    const byDay: Record<string, any> = {};
     const transactions: any[] = [];
 
     try {
@@ -1115,13 +1116,21 @@ function _readHermesTradeDetails(): any {
             const tsIso = isNaN(ts.getTime()) ? new Date().toISOString() : ts.toISOString();
 
             if (!byProject[name]) {
-                byProject[name] = { gross: 0, count: 0, currency: 'KRW', items: {} };
+                byProject[name] = { gross: 0, pnl: 0, count: 0, currency: 'KRW', items: {} };
             }
             byProject[name].gross += Math.abs(pnl);
+            byProject[name].pnl += pnl;
             byProject[name].count += 1;
-            byProject[name].items[ticker] = byProject[name].items[ticker] || { gross: 0, count: 0 };
+            byProject[name].items[ticker] = byProject[name].items[ticker] || { gross: 0, pnl: 0, count: 0 };
             byProject[name].items[ticker].gross += Math.abs(pnl);
+            byProject[name].items[ticker].pnl += pnl;
             byProject[name].items[ticker].count += 1;
+
+            const dayKey = tsIso.slice(0, 10);
+            byDay[dayKey] = byDay[dayKey] || { KRW: { gross: 0, pnl: 0, count: 0 } };
+            byDay[dayKey].KRW.gross += Math.abs(pnl);
+            byDay[dayKey].KRW.pnl += pnl;
+            byDay[dayKey].KRW.count += 1;
 
             transactions.push({
                 id: String(t.id || `${ticker}-${tsIso}-${transactions.length}`),
@@ -1139,6 +1148,7 @@ function _readHermesTradeDetails(): any {
 
         return {
             by_project: byProject,
+            by_day: byDay,
             transactions: transactions.slice(0, 30)
         };
     } catch {
@@ -1196,7 +1206,7 @@ function _readHermesPerformanceMiniData(): any {
                 take_profits: num(thirty.take_profits),
                 intraday_flats: num(thirty.intraday_flats)
             },
-            by_day: {},
+            by_day: detail.by_day || {},
             by_project: detail.by_project || {},
             transactions: detail.transactions || []
         };

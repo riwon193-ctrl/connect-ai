@@ -137,7 +137,7 @@ function renderDonut(byProject, primaryCur) {
   if (!svg || !legend) return;
 
   const entries = Object.entries(byProject || {})
-    .map(([name, p]) => ({ name, gross: p.gross || 0, count: p.count || 0 }))
+    .map(([name, p]) => ({ name, gross: Math.abs(p.pnl ?? p.gross ?? 0), pnl: p.pnl ?? p.gross ?? 0, count: p.count || 0 }))
     .filter(p => p.gross > 0)
     .sort((a, b) => b.gross - a.gross);
 
@@ -190,7 +190,7 @@ function renderProjectBars(byProject) {
   const wrap = $('projBars');
   if (!wrap) return;
   const entries = Object.entries(byProject || {})
-    .map(([name, p]) => ({ name, gross: p.gross || 0, count: p.count || 0, items: p.items || {} }))
+    .map(([name, p]) => ({ name, gross: Math.abs(p.pnl ?? p.gross ?? 0), pnl: p.pnl ?? p.gross ?? 0, count: p.count || 0, items: p.items || {} }))
     .filter(p => p.gross > 0)
     .sort((a, b) => b.gross - a.gross);
 
@@ -201,12 +201,12 @@ function renderProjectBars(byProject) {
   const maxV = Math.max(...entries.map(p => p.gross), 1);
   wrap.innerHTML = entries.map(p => {
     const w = (p.gross / maxV * 100).toFixed(1);
-    const items = Object.entries(p.items || {}).sort((a,b) => b[1].gross - a[1].gross).slice(0, 3);
+    const items = Object.entries(p.items || {}).sort((a,b) => Math.abs(b[1].pnl ?? b[1].gross ?? 0) - Math.abs(a[1].pnl ?? a[1].gross ?? 0)).slice(0, 3);
     const itemsTxt = items.map(([k,v]) => `${esc(k)} ×${v.count}`).join(' · ');
     return `<div class="proj-bar">
       <div class="name">${esc(p.name)}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div>
-      <div class="val">${fmtNum(p.gross)}</div>
+      <div class="val">${(p.pnl >= 0 ? "+" : "") + Math.round(p.pnl).toLocaleString("ko-KR")} KRW</div>
     </div>
     <div style="font-size: 0.72rem; color: var(--text-3); padding: 0 0 8px 154px;">${itemsTxt}</div>`;
   }).join('');
