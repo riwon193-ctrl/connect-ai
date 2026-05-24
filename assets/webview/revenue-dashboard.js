@@ -1,4 +1,4 @@
-// v2.89.137 — Revenue Dashboard webview script.
+// v2.89.137 — Performance Dashboard webview script.
 // state schema: {
 //   loading: bool, error: string|null,
 //   data: {
@@ -305,11 +305,11 @@ function render(state) {
     $('emptyArea').classList.remove('hidden');
     $('emptyArea').innerHTML = `<div class="empty">
       <div class="emoji">⚠️</div>
-      <h3>매출 데이터 가져오기 실패</h3>
+      <h3>수익률 데이터 가져오기 실패</h3>
       <p>${esc(state.error)}</p>
       <p style="margin-top:10px;">
-        외부 연결 패널에서 <code>PayPal Client ID</code> + <code>Secret</code> 설정 필요.<br>
-        또는 <code>connectAiLab.apiConnections.open</code> 명령으로 직접.
+        Hermes 성과 데이터 파일 연결을 확인하세요.<br>
+        performance_summary.json 생성 여부를 확인하세요.
       </p>
     </div>`;
     return;

@@ -1179,7 +1179,7 @@ window.addEventListener('message', e => {
   }
 });
 vscode.postMessage({ type: 'refresh' });
-/* ───────── v2.89.142 — Revenue Card (회사 대시보드의 매출 위젯) ───────── */
+/* ───────── v2.89.142 — Performance Card (Hermes 수익률 관리 위젯) ───────── */
 (function setupRevenueCard() {
   const openBtn = document.getElementById('openRevDashBtn');
   const askBtn  = document.getElementById('askHyunbinBtn');
@@ -1189,7 +1189,7 @@ vscode.postMessage({ type: 'refresh' });
   if (askBtn) askBtn.addEventListener('click', () => {
     vscode.postMessage({ type: 'askHyunbinRevenue' });
   });
-  /* 데이터 요청 — extension 이 paypal_revenue.py 호출해서 미니 KPI + sparkline 회신 */
+  /* 데이터 요청 — extension 이 Hermes performance summary를 호출해서 미니 KPI + sparkline 회신 */
   vscode.postMessage({ type: 'requestRevenueMini' });
 })();
 
@@ -1260,7 +1260,7 @@ function _renderRevenueMini(data) {
     return;
   }
   if (!data || !data.totals) {
-    document.getElementById('revSubtitle').textContent = '💡 외부 연결 패널에서 PayPal Client ID/Secret 입력 → 즉시 분석';
+    document.getElementById('revSubtitle').textContent = '💡 Hermes 성과 데이터 연결 확인 → 수익률 분석';
     return;
   }
   const totals = data.totals;
@@ -1272,7 +1272,7 @@ function _renderRevenueMini(data) {
   /* skeleton 제거 */
   card.querySelectorAll('.rev-skeleton').forEach(el => el.classList.remove('rev-skeleton'));
   document.getElementById('revSubtitle').textContent =
-    primaryCur + ' 매출 실시간 분석 · ' + cur.count + '건 거래 · 클릭 → 풀스크린';
+    primaryCur + ' 매매 성과 분석 · ' + cur.count + '건 거래 · 클릭 → 풀스크린';
 
   _animateNum(document.getElementById('revMonth'), period.month || 0, {
     formatter: (v) => primaryCur === 'USD' ? '$' + _fmtRevAmount(v) : _fmtRevAmount(v) + ' ' + primaryCur

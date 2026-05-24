@@ -159,7 +159,7 @@
       },
       {
         "command": "connectAiLab.revenueDashboard.open",
-        "title": "💰 매출 대시보드 (PayPal 실시간)",
+        "title": "📈 수익률 대시보드 (Hermes)",
         "category": "Connect AI",
         "icon": "$(graph-line)"
       }
